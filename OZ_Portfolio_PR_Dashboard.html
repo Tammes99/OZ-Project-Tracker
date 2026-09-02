@@ -1,0 +1,1584 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>OZ Portfolio &amp; PR Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAF9F5;
+  --bg-panel:#FFFFFF;
+  --bg-panel-2:#F4F2EA;
+  --bg-row-alt:#F8F6F0;
+  --grid:#E5E2D8;
+  --grid-soft:#EEECE3;
+  --ink:#1F1E1C;
+  --ink-dim:#6B6A64;
+  --ink-faint:#9C9A91;
+  --amber:#C2542F;
+  --amber-dim:#C2542F1f;
+  --slate:#8A887F;
+  --crimson:#B23A32;
+  --crimson-dim:#B23A321a;
+  --teal:#2E7D6B;
+  --font-display:'Space Grotesk',sans-serif;
+  --font-body:'Inter',sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+#app{position:relative; z-index:1; max-width:1440px; margin:0 auto; padding:20px 24px 64px;}
+
+/* ---------- Title block ---------- */
+.titleblock{
+  border:1px solid var(--grid);
+  display:grid;
+  grid-template-columns: 1.6fr 1fr 1fr 1fr;
+  margin-bottom:18px;
+  background:var(--bg-panel);
+  box-shadow:0 1px 2px rgba(31,30,28,.04);
+  border-radius:6px;
+  overflow:hidden;
+}
+.titleblock .cell{
+  border-left:1px solid var(--grid);
+  padding:12px 16px;
+}
+.titleblock .cell:first-child{border-left:none;}
+.tb-label{
+  font-size:10.5px;
+  letter-spacing:.08em;
+  color:var(--ink-faint);
+  margin-bottom:6px;
+  font-family:var(--font-body);
+}
+.tb-title{
+  font-family:var(--font-display);
+  font-size:22px;
+  font-weight:600;
+  color:var(--ink);
+  letter-spacing:-.01em;
+}
+.tb-sub{
+  color:var(--ink-dim);
+  font-size:12.5px;
+  margin-top:3px;
+}
+.tb-stat{
+  font-family:var(--font-display);
+  font-size:26px;
+  font-weight:600;
+}
+.tb-stat.amber{color:var(--amber);}
+.tb-stat.slate{color:var(--slate);}
+.tb-stat.crimson{color:var(--crimson);}
+
+/* ---------- Tabs ---------- */
+.tabs{
+  display:flex;
+  gap:2px;
+  margin-bottom:16px;
+  border-bottom:1px solid var(--grid);
+}
+.datasource-bar{
+  display:flex; align-items:center; gap:10px;
+  font-size:12px; color:var(--ink-dim);
+  margin-bottom:14px;
+}
+.ds-dot{width:8px; height:8px; border-radius:50%; background:var(--slate); flex-shrink:0;}
+.ds-dot.live{background:var(--teal);}
+.ds-dot.error{background:var(--crimson);}
+.ds-dot.loading{background:var(--amber); animation:ds-pulse 1s ease-in-out infinite;}
+@keyframes ds-pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+.tab{
+  font-family:var(--font-display);
+  font-size:13.5px;
+  font-weight:500;
+  color:var(--ink-dim);
+  background:transparent;
+  border:none;
+  padding:10px 18px 12px;
+  cursor:pointer;
+  position:relative;
+  letter-spacing:.01em;
+}
+.tab:hover{color:var(--ink);}
+.tab.active{color:var(--ink);}
+.tab.active::after{
+  content:'';
+  position:absolute; left:0; right:0; bottom:-1px; height:2px;
+  background:var(--amber);
+}
+
+.view{display:none;}
+.view.active{display:block;}
+
+/* ---------- Legend ---------- */
+.legend{
+  display:flex; flex-wrap:wrap; gap:18px;
+  padding:10px 14px;
+  border:1px solid var(--grid);
+  background:var(--bg-panel);
+  margin-bottom:14px;
+  font-size:12px;
+  color:var(--ink-dim);
+}
+.legend .item{display:flex; align-items:center; gap:6px;}
+.legend .swatch{width:11px;height:11px;border-radius:2px;display:inline-block;}
+.legend .diamond{width:9px;height:9px;background:var(--ink);transform:rotate(45deg);display:inline-block;}
+.legend .dot{width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block;}
+
+/* ---------- Portfolio Gantt ---------- */
+.gantt-wrap{
+  border:1px solid var(--grid);
+  background:var(--bg-panel);
+  overflow:auto;
+  max-height:72vh;
+  position:relative;
+  border-radius:6px;
+  box-shadow:0 1px 2px rgba(31,30,28,.04);
+}
+.gantt{
+  display:grid;
+  grid-template-columns: 230px 84px 190px 190px repeat(var(--weekcount, 74), var(--weekw, 24px));
+  min-width:2200px;
+}
+.gantt-head{
+  display:contents;
+}
+.gantt-head > div{
+  position:sticky; top:0;
+  background:var(--bg-panel-2);
+  border-bottom:1px solid var(--grid);
+  padding:8px 10px;
+  font-size:10.5px;
+  letter-spacing:.06em;
+  color:var(--ink-faint);
+  z-index:3;
+}
+.gantt-head .m{
+  text-align:center;
+  border-left:1px solid var(--grid-soft);
+  padding:5px 1px 7px;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+  gap:2px;
+}
+.gantt-head .m.month-start{border-left:1.5px solid var(--grid);}
+.gantt-head .m .wk-month{font-size:8.5px; letter-spacing:.03em; color:var(--ink-faint); height:10px; font-weight:600;}
+.gantt-head .m .wk-num{font-size:9.5px; color:var(--ink-dim); font-variant-numeric:tabular-nums;}
+.gantt-head .m.today-month .wk-num{color:var(--amber); font-weight:700;}
+.col-sticky{position:sticky; left:0; z-index:2; background:var(--bg-panel-2);}
+.col-sticky2{position:sticky; left:230px; z-index:2; background:var(--bg-panel-2);}
+.col-sticky3{position:sticky; left:314px; z-index:2; background:var(--bg-panel-2);}
+.col-sticky4{position:sticky; left:504px; z-index:2; background:var(--bg-panel-2);}
+
+.prow{display:contents; cursor:pointer;}
+.prow .cell{
+  border-bottom:1px solid var(--grid-soft);
+  padding:9px 10px;
+  display:flex; align-items:center;
+  min-height:48px;
+  background:var(--bg-panel);
+}
+.prow:nth-child(4n+1) .cell, .prow:nth-child(4n+2) .cell{ }
+.prow.onhold .cell{opacity:.62;}
+.prow .cell.name{
+  font-family:var(--font-display);
+  font-weight:500;
+  font-size:13.5px;
+  gap:8px;
+  position:sticky; left:0; z-index:1;
+}
+.info-btn{
+  width:16px; height:16px; border-radius:50%; flex-shrink:0;
+  border:1px solid var(--grid); background:var(--bg-panel-2);
+  color:var(--ink-faint); font-size:10px; font-style:italic; font-family:Georgia,'Times New Roman',serif;
+  display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer; padding:0; line-height:1; margin-left:auto;
+}
+.info-btn:hover{border-color:var(--amber); color:var(--amber); background:var(--amber-dim);}
+.prow .cell.name .pname{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;}
+.prow .cell.name .caret{
+  color:var(--ink-faint);
+  font-size:10px;
+  width:10px;
+  transition:transform .15s ease;
+}
+.prow.expanded .cell.name .caret{transform:rotate(90deg); color:var(--amber);}
+.prow .cell.status{position:sticky; left:230px; z-index:1;}
+.prow .cell.phase{position:sticky; left:314px; z-index:1; flex-direction:column; align-items:flex-start; justify-content:center; gap:2px; padding:8px 12px;}
+.prow .cell.milestone{position:sticky; left:504px; z-index:1; flex-direction:column; align-items:flex-start; gap:1px;}
+.prow .cell.milestone .mname{font-size:12.5px; color:var(--ink);}
+.prow .cell.milestone .mdate{font-size:11px; color:var(--ink-faint);}
+.inline-edit-row{display:flex; align-items:center; width:100%; margin-bottom:2px;}
+.inline-input{
+  background:transparent; border:1px solid transparent; border-radius:3px;
+  color:var(--ink); font-family:var(--font-body); padding:2px 4px; width:100%;
+  min-width:0;
+}
+.inline-input.mname-input{font-size:12.5px;}
+.inline-input.mdate-input{font-size:11px; color:var(--ink-faint); padding:2px 4px;}
+.inline-input:hover{border-color:var(--grid);}
+.inline-input:focus{outline:none; border-color:var(--amber); background:var(--bg-panel);}
+.badge-select{
+  font-size:10px; font-weight:600; letter-spacing:.03em;
+  padding:3px 6px 3px 8px; border-radius:3px; cursor:pointer;
+  font-family:var(--font-body); appearance:none; -webkit-appearance:none;
+  background-repeat:no-repeat; background-position:right 5px center; background-size:8px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'><path d='M0 0l5 6 5-6z' fill='%239C9A91'/></svg>");
+  padding-right:16px; border:1px solid transparent;
+}
+.badge-select:hover{border-color:var(--grid);}
+.badge-select.active{background-color:var(--amber-dim); color:var(--amber);}
+.badge-select.onhold{background-color:#8A887F26; color:var(--slate);}
+.badge-select.completed{background-color:#2E7D6B1a; color:var(--teal);}
+.badge-select.lost{background-color:#8A887F1a; color:var(--ink-faint);}
+.badge-select.unknownstatus{background-color:#8A887F1a; color:var(--ink-faint);}
+.prow .cell.m{
+  justify-content:center;
+  border-left:1px solid var(--grid-soft);
+  padding:0;
+  position:relative;
+}
+.cell.m.month-start{border-left:1.5px solid var(--grid);}
+
+/* ---------- Phase column (sticky, plain text) ---------- */
+.phase-cur{display:block; font-size:12.5px; color:var(--ink); font-weight:500;}
+.phase-next{display:block; font-size:11px; color:var(--ink-faint); margin-top:2px;}
+.subrow .cell.phase{font-size:12px; color:var(--ink-dim);}
+
+/* ---------- Phase bar (drawn on the timeline itself) ---------- */
+.phase-bar-seg{
+  position:absolute; left:0; right:0; top:50%; transform:translateY(-50%);
+  height:8px; background:var(--ink); opacity:.10;
+  border-top:1px solid var(--ink-dim); border-bottom:1px solid var(--ink-dim);
+  z-index:0;
+}
+.phase-bar-seg.gate{background:var(--slate); opacity:.16; border-color:var(--slate);}
+.phase-bar-seg.open-end{border-right:1px dashed var(--ink-faint);}
+.phase-bar-seg.start{left:0; border-top-left-radius:5px; border-bottom-left-radius:5px;}
+.phase-bar-seg.end{border-top-right-radius:5px; border-bottom-right-radius:5px;}
+.phase-flag{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:0; height:0; z-index:2;
+  border-left:5px solid transparent; border-right:5px solid transparent; border-bottom:8px solid var(--amber);
+  cursor:pointer;
+}
+.phase-flag.gate{border-bottom-color:var(--slate);}
+
+.badge{
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.03em;
+  padding:3px 8px;
+  border-radius:3px;
+  white-space:nowrap;
+}
+.badge.active{background:var(--amber-dim); color:var(--amber); border:1px solid #C2542F55;}
+.badge.onhold{background:#8A887F26; color:var(--slate); border:1px solid #8A887F55;}
+.badge.completed{background:#2E7D6B1a; color:var(--teal); border:1px solid #2E7D6B55;}
+.badge.lost{background:#8A887F1a; color:var(--ink-faint); border:1px solid #8A887F40;}
+.badge.unknownstatus{background:#8A887F1a; color:var(--ink-faint); border:1px solid #8A887F40;}
+
+.nda-flag{
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:9.5px; font-weight:700; letter-spacing:.04em;
+  color:var(--crimson); background:var(--crimson-dim);
+  border:1px solid #B23A3255;
+  padding:2px 6px; border-radius:2px;
+  margin-left:6px;
+}
+.attn-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--amber);
+  box-shadow:0 0 0 3px #C2542F22;
+  flex-shrink:0;
+}
+
+.gmarker{
+  width:9px;height:9px;background:var(--ink);
+  transform:rotate(45deg);
+  cursor:pointer;
+}
+.gmarker:hover{background:var(--amber);}
+.gmarker.pr{
+  width:8px;height:8px;border-radius:50%;background:var(--teal);
+  transform:none;
+  position:absolute; bottom:6px;
+}
+.today-line{
+  position:absolute; top:0; bottom:0; left:0;
+  width:1px; background:var(--amber); opacity:.6;
+}
+
+/* sub rows */
+.subrow{display:contents;}
+.subrow .cell{
+  border-bottom:1px solid var(--grid-soft);
+  padding:7px 10px;
+  min-height:34px;
+  display:flex; align-items:center;
+  background:var(--bg-row-alt);
+}
+.subrow .cell.name{position:sticky; left:0; z-index:1; background:var(--bg-row-alt); font-size:12px; color:var(--ink-dim);}
+.subrow .cell.status{position:sticky; left:230px; z-index:1; background:var(--bg-row-alt);}
+.subrow .cell.phase{position:sticky; left:314px; z-index:1; background:var(--bg-row-alt);}
+.subrow .cell.milestone{position:sticky; left:504px; z-index:1; background:var(--bg-row-alt);}
+.subrow .cell.m{border-left:1px solid var(--grid-soft); padding:0; position:relative; background:var(--bg-row-alt);}
+.subrow.phase-row .name{padding-left:26px; color:var(--ink);}
+.subrow.milestone-row .name{padding-left:26px; color:var(--ink); font-weight:500;}
+.subrow.pr-row .name{padding-left:44px; color:var(--teal); font-size:11.5px;}
+.subrow.pr-row .name::before{content:'—'; margin-right:6px; color:var(--grid);}
+
+.tip-icon{color:var(--ink-faint); font-size:10px; margin-left:5px;}
+
+/* ---------- Simple list views (This Week / Outlook) ---------- */
+.subnav{display:flex; gap:8px; margin-bottom:14px;}
+.chip{
+  font-size:12px; font-family:var(--font-body); font-weight:500;
+  color:var(--ink-dim); background:var(--bg-panel);
+  border:1px solid var(--grid); padding:6px 13px; border-radius:20px;
+  cursor:pointer;
+}
+.chip.active{color:#fff; background:var(--amber); border-color:var(--amber);}
+#ndaChip{color:var(--crimson); border-color:#B23A3255;}
+#ndaChip.active{color:#fff; background:var(--crimson); border-color:var(--crimson);}
+.subnav{flex-wrap:wrap;}
+#partnerFilterRow{align-items:center; margin-top:-6px;}
+#sortRow{align-items:center; margin-top:-6px;}
+.filter-label{font-size:11px; color:var(--ink-faint); letter-spacing:.04em; margin-right:2px;}
+.chip.partner-chip{padding:5px 12px; font-size:11.5px;}
+.sort-chip{display:inline-flex; align-items:center; gap:4px;}
+.sort-arrow{font-size:9px;}
+
+.card-list{display:flex; flex-direction:column; gap:1px; border:1px solid var(--grid); background:var(--grid);}
+.action-card{
+  background:var(--bg-panel);
+  display:grid;
+  grid-template-columns: 90px 1.4fr 1fr 90px 130px;
+  gap:12px;
+  align-items:center;
+  padding:12px 16px;
+}
+.action-card .when{font-family:var(--font-display); font-size:13px; color:var(--amber); font-weight:600;}
+.action-card .what{font-size:13px;}
+.action-card .what b{font-weight:600; color:var(--ink);}
+.action-card .proj{color:var(--ink-dim); font-size:12px;}
+.action-card .owner{font-size:12px; color:var(--ink-dim);}
+.action-card .kindtag{font-size:10px; letter-spacing:.04em; padding:3px 8px; border-radius:3px; text-align:center; white-space:nowrap;}
+.kindtag.milestone{background:#1F1E1C0d; color:var(--ink); border:1px solid var(--grid);}
+.kindtag.pr{background:#2E7D6B1a; color:var(--teal); border:1px solid #2E7D6B55;}
+.empty-note{padding:28px; text-align:center; color:var(--ink-faint); font-size:13px; background:var(--bg-panel); border:1px solid var(--grid);}
+
+/* ---------- Project Info ---------- */
+.search-row{display:flex; gap:10px; margin-bottom:14px;}
+.search-input{
+  flex:1; background:var(--bg-panel); border:1px solid var(--grid); color:var(--ink);
+  padding:9px 13px; font-family:var(--font-body); font-size:13px; border-radius:4px;
+}
+.search-input:focus{outline:none; border-color:var(--amber);}
+.info-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:10px;}
+.info-card{
+  background:var(--bg-panel); border:1px solid var(--grid); padding:14px 16px; border-radius:4px;
+}
+.info-card.nda{border-color:#B23A3266; background:linear-gradient(135deg, #B23A3214, var(--bg-panel) 40%);}
+.info-card h4{margin:0 0 6px; font-family:var(--font-display); font-size:14px; font-weight:600;}
+.info-card .meta-line{font-size:11.5px; color:var(--ink-dim); margin-bottom:3px;}
+.info-card .meta-line span{color:var(--ink-faint);}
+
+/* ---------- Detail panel ---------- */
+.overlay{
+  position:fixed; inset:0; background:#05101dcc; z-index:50; display:none;
+  align-items:flex-start; justify-content:flex-end;
+}
+.overlay.open{display:flex;}
+.panel{
+  width:min(420px, 92vw); height:100%; background:var(--bg-panel-2);
+  border-left:1px solid var(--grid); padding:22px 22px 30px; overflow-y:auto;
+}
+.panel h3{font-family:var(--font-display); font-size:19px; margin:0 0 4px;}
+.panel .close{
+  float:right; background:none; border:1px solid var(--grid); color:var(--ink-dim);
+  width:28px; height:28px; border-radius:4px; cursor:pointer; font-size:14px;
+}
+.panel .field{margin-top:16px;}
+.panel .field .k{font-size:10.5px; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:4px;}
+.panel .field .v{font-size:13.5px; color:var(--ink);}
+.panel .commstate{
+  display:inline-block; margin-top:6px; padding:4px 10px; border-radius:3px; font-size:11.5px; font-weight:600;
+}
+
+/* ---------- Edit forms inside the panel ---------- */
+.panel .section-title{
+  margin-top:24px; padding-top:14px; border-top:1px solid var(--grid);
+  font-family:var(--font-display); font-size:13px; font-weight:600; color:var(--ink);
+}
+.edit-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px 12px; margin-top:12px;}
+.edit-grid.full{grid-template-columns:1fr;}
+.form-field label{display:block; font-size:10.5px; letter-spacing:.05em; color:var(--ink-faint); margin-bottom:4px;}
+.form-field input, .form-field select, .form-field textarea{
+  width:100%; background:var(--bg-panel); border:1px solid var(--grid); color:var(--ink);
+  padding:7px 9px; font-family:var(--font-body); font-size:12.5px; border-radius:4px;
+}
+.form-field textarea{resize:vertical; min-height:50px;}
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus{outline:none; border-color:var(--amber);}
+.checkbox-field{display:flex; align-items:center; gap:6px; margin-top:6px;}
+.checkbox-field input{width:auto;}
+.save-btn{
+  margin-top:14px; background:var(--amber); color:#fff; border:none; border-radius:4px;
+  padding:8px 16px; font-family:var(--font-body); font-size:12.5px; font-weight:600; cursor:pointer;
+}
+.save-btn:disabled{opacity:.5; cursor:default;}
+.mini-list{display:flex; flex-direction:column; gap:6px; margin-top:10px;}
+.mini-item{
+  display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-dim);
+  padding:6px 8px; background:var(--bg-panel-2); border-radius:4px;
+}
+.mini-item .mi-label{flex:1; color:var(--ink);}
+.mini-item .mi-date{color:var(--ink-faint); font-size:11px; white-space:nowrap;}
+.mi-status-select{
+  font-size:10.5px; font-family:var(--font-body); color:var(--ink-dim);
+  background:var(--bg-panel); border:1px solid var(--grid); border-radius:3px;
+  padding:3px 5px; cursor:pointer; flex-shrink:0;
+}
+.mi-status-select:focus{outline:none; border-color:var(--amber);}
+.mini-del{
+  background:none; border:none; color:var(--ink-faint); cursor:pointer; font-size:13px;
+  padding:0 4px; line-height:1;
+}
+.mini-del:hover{color:var(--crimson);}
+.mini-add-row{display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;}
+.mini-add-row input, .mini-add-row select{
+  background:var(--bg-panel); border:1px solid var(--grid); color:var(--ink);
+  padding:6px 8px; font-size:12px; border-radius:4px; font-family:var(--font-body);
+}
+.mini-add-row input[type="text"]{flex:1; min-width:100px;}
+.mini-add-btn{
+  background:var(--bg-panel-2); border:1px solid var(--grid); color:var(--ink-dim);
+  padding:6px 12px; font-size:11.5px; border-radius:4px; cursor:pointer; font-weight:600;
+}
+.mini-add-btn:hover{border-color:var(--amber); color:var(--amber);}
+.readonly-note{color:var(--ink-faint); font-size:12px; margin-top:6px;}
+
+/* ---------- Toast ---------- */
+.toast{
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:6px;
+  font-size:12.5px; z-index:100; opacity:0; transition:opacity .2s ease, transform .2s ease;
+  pointer-events:none;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+.toast.error{background:var(--crimson);}
+.fab{
+  position:fixed; bottom:26px; right:26px; z-index:60;
+  width:52px; height:52px; border-radius:50%; border:none;
+  background:var(--amber); color:#fff; font-size:26px; font-weight:400;
+  cursor:pointer; box-shadow:0 4px 14px rgba(194,84,47,.4);
+  display:flex; align-items:center; justify-content:center; line-height:1;
+  transition:transform .12s ease;
+}
+.fab:hover{transform:scale(1.06);}
+.quick-form .form-field{margin-top:12px;}
+
+footer.note{
+  margin-top:24px; font-size:11.5px; color:var(--ink-faint); line-height:1.6;
+  border-top:1px solid var(--grid); padding-top:14px;
+}
+
+@media (max-width:760px){
+  .titleblock{grid-template-columns:1fr 1fr;}
+  .action-card{grid-template-columns:70px 1fr; grid-template-areas:"when what" ". proj" ". owner" ". kind";}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="titleblock">
+    <div class="cell">
+      <div class="tb-label">OZ ARCHITECTS — COMMUNICATIONS</div>
+      <div class="tb-title">Portfolio &amp; PR Planner</div>
+      <div class="tb-sub" id="asOf">12-month view</div>
+    </div>
+    <div class="cell">
+      <div class="tb-label">ACTIVE PROJECTS</div>
+      <div class="tb-stat amber" id="statActive">–</div>
+    </div>
+    <div class="cell">
+      <div class="tb-label">ON HOLD</div>
+      <div class="tb-stat slate" id="statHold">–</div>
+    </div>
+    <div class="cell">
+      <div class="tb-label">NEEDS PR ATTENTION</div>
+      <div class="tb-stat crimson" id="statAttn">–</div>
+    </div>
+  </div>
+
+  <div class="datasource-bar">
+    <span class="ds-dot" id="dsDot"></span>
+    <span id="dsText">Working from snapshot</span>
+    <button class="chip" id="dataSourceBtn" style="margin-left:auto;">Connect data source</button>
+    <button class="chip" id="addProjectBtn">+ Add project</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-view="portfolio">Portfolio Gantt</button>
+    <button class="tab" data-view="week">This Week</button>
+    <button class="tab" data-view="outlook">PR Outlook</button>
+    <button class="tab" data-view="info">Project Information</button>
+  </div>
+
+  <!-- PORTFOLIO -->
+  <div class="view active" id="view-portfolio">
+    <div class="subnav" id="statusFilters">
+      <button class="chip active" data-status="Active">Active</button>
+      <button class="chip active" data-status="On Hold">On Hold</button>
+      <button class="chip" data-status="Completed">Completed</button>
+      <button class="chip" data-status="Lost">Lost / archived</button>
+      <button class="chip" data-status="Unknown">Unclassified</button>
+      <button class="chip" id="ndaChip" data-nda="1">+ NDA / confidential only</button>
+    </div>
+    <div class="subnav" id="partnerFilterRow">
+      <span class="filter-label">Partner</span>
+      <div class="subnav" id="partnerFilters" style="margin-bottom:0;"></div>
+    </div>
+    <div class="subnav" id="sortRow">
+      <span class="filter-label">Sort by</span>
+      <button class="chip sort-chip" data-sort="name">Project name</button>
+      <button class="chip sort-chip" data-sort="status">Status</button>
+      <button class="chip sort-chip" data-sort="next_phase_date">Next phase date</button>
+      <button class="chip sort-chip active" data-sort="next_milestone_date">Next milestone date <span class="sort-arrow">▲</span></button>
+      <button class="chip sort-chip" data-sort="partner">Partner</button>
+    </div>
+    <div class="legend">
+      <div class="item"><span class="diamond"></span> Milestone</div>
+      <div class="item"><span class="dot"></span> PR action</div>
+      <div class="item"><span style="display:inline-flex;align-items:center;position:relative;width:18px;height:10px;"><span class="phase-bar-seg start end" style="position:static;width:18px;height:8px;transform:none;display:inline-block;"></span></span> Current phase (from 1 Aug '26)</div>
+      <div class="item"><span style="display:inline-flex;align-items:center;justify-content:center;width:12px;"><span class="phase-flag" style="position:static;transform:none;"></span></span> Next phase starts</div>
+      <div class="item"><span class="badge active">ACTIVE</span></div>
+      <div class="item"><span class="badge onhold">ON HOLD</span></div>
+      <div class="item"><span class="attn-dot"></span> PR opportunity within 60 days</div>
+      <div class="item"><span class="nda-flag">NDA</span> Do not publish</div>
+      <div class="item" style="margin-left:auto; color:var(--ink-faint);" id="portfolioCount"></div>
+    </div>
+    <div class="gantt-wrap">
+      <div class="gantt" id="ganttGrid"></div>
+    </div>
+  </div>
+
+  <!-- THIS WEEK -->
+  <div class="view" id="view-week">
+    <div class="subnav">
+      <button class="chip active" data-days="7">Next 7 days</button>
+      <button class="chip" data-days="30">Next 30 days</button>
+    </div>
+    <div class="card-list" id="weekList"></div>
+  </div>
+
+  <!-- OUTLOOK -->
+  <div class="view" id="view-outlook">
+    <div class="subnav">
+      <button class="chip" data-months="3">3 months</button>
+      <button class="chip active" data-months="6">6 months</button>
+      <button class="chip" data-months="12">12 months</button>
+    </div>
+    <div class="card-list" id="outlookList"></div>
+  </div>
+
+  <!-- PROJECT INFO -->
+  <div class="view" id="view-info">
+    <div class="search-row">
+      <input class="search-input" id="infoSearch" placeholder="Search project, client, architect, partner…"/>
+    </div>
+    <div class="tb-sub" id="infoCount" style="margin-bottom:12px;"></div>
+    <div class="info-grid" id="infoGrid"></div>
+  </div>
+
+  <footer class="note">
+    V1 pilot view built from the current OZ ongoing-projects workbook. Milestone→PR-action links are inferred from
+    row order and nearest date where the source sheet did not state them explicitly. Date fields shown without a day
+    (month/quarter only) are planning windows, not committed dates — always confirm before publishing.
+  </footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="panel" id="panel"></div>
+</div>
+<div class="toast" id="toast"></div>
+<button class="fab" id="quickAddBtn" title="Quick add PR task">+</button>
+<datalist id="projectNameList"></datalist>
+
+<script id="oz-data" type="application/json">{"month_labels": ["Aug-26", "Sep-26", "Oct-26", "Nov-26", "Dec-26", "Jan-27", "Feb-27", "Mar-27", "Apr-27", "May-27", "Jun-27", "Jul-27", "Aug-27", "Sep-27", "Oct-27", "Nov-27", "Dec-27"], "projects": [{"name": "ONO", "location": "Amsterdam", "status": "Active", "phase": "24. Wait for Municipality", "next_phase": "18. Construction", "next_phase_date": "2027-01-05", "next_milestone": "Municipal Go/No-Go", "next_milestone_date": null, "partner": "JB", "action": "Posten wanneer omgevingsvergunning binnen is", "project_architect": "Maarten; OS", "typology": "Office", "programma": "kantoor", "client": "Less=Real; Synchroon", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "One Milkyway - Maanplein", "location": "Den Haag", "status": "Completed", "phase": "20. Completion", "next_phase": "20. Completion", "next_phase_date": "2026-03-01", "next_milestone": null, "next_milestone_date": null, "partner": "JB", "action": "Part of Binck City Park's Urban Transformation. Assess Relevance", "project_architect": "Koos", "typology": "Residential; Office; Retail", "programma": "Residential; Office; Retail", "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Hoog Catharijne", "location": "Utrecht", "status": "Active", "phase": "20. Completion", "next_phase": "20. Completion", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": "status vragen aan PA", "project_architect": "Rogier", "typology": "Mixed Use; Retail", "programma": "Retail; Mixed Use; Uitwerken", "client": "Kl\u00e9pierre Vastgoed Ontwikkeling B.V.", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Damsigt Herontwikkeling", "location": "Voorburg", "status": "Active", "phase": "20. Completion", "next_phase": "20. Completion", "next_phase_date": "2025-12-01", "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": "Met DT bespreken of we iets willen doen", "project_architect": "Rogier", "typology": "Residential", "programma": null, "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Goffertpark Woonwaarts", "location": "Nijmegen", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": "2027-10-01", "next_milestone": "Start Construction", "next_milestone_date": "2026-09-01", "partner": "JB", "action": "K&L begonnnen - overwegen om te posten", "project_architect": "Cecilia", "typology": "Residential", "programma": "Sociale Woningbouw", "client": "Woonwaarts", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, "Start Const.", null, null, null, null, null, null, null, null, null, null, null, null, "Completion", null, null], "pr_rows": [{"month_idx": 1, "label": "PR: Website Update"}]}, {"name": "The Hive", "location": "Amsterdam", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": "2027-04-01", "next_milestone": "Topping Out", "next_milestone_date": null, "partner": "JB", "action": "will top out soon. Gezamenlijk PR met ION & Green", "project_architect": "Cecilia", "typology": "Residential; Transformation", "programma": "Residential; Transformation; Commercial", "client": "ION; Green Real Estate", "developer": null, "collaboration": "Flux Landscape, Jaap Schoufour, Vincent van Rossum, Arup, De Wijde Blik, Climate Design Consult, Van Rossum, Drietech & Verhoef", "last_media_post": null, "info": null, "resources": null, "link_web": "https://ozarchitect.nl/the-hive/", "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, "Topping Out", null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "High Five", "location": "Utrecht", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": "26-8-2026", "next_milestone": "Landscape Completion", "next_milestone_date": "2026-10-15", "partner": "OS", "action": "Press Kit; Social Media Posts; Photograpy. PA vragen om completion date", "project_architect": "Farida", "typology": "Residential; Student", "programma": "Residential; Student", "client": "Jebber", "developer": "VORM 2050", "collaboration": "OKRA Landscape; Wubben Chan Engineering; Pieters Bouwtechniek; LBP; M-Trix; VIA", "last_media_post": null, "info": null, "resources": null, "link_web": "https://ozarchitect.nl/high-five/", "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, "Building Compl.", "Landscape Compl.", null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": [{"month_idx": 1, "label": "PR: social media & website"}, {"month_idx": 1, "label": "PR: Photography"}]}, {"name": "Van Doorne Advocaten Asd", "location": "Amsterdam - Zuidas", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": "zie actie", "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": "status vragen aan PA", "project_architect": "Farida", "typology": "Office", "programma": "Office (lawyers); verduurzaming;", "client": "First Sponsor", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Ypsilon Park", "location": "Den Haag", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "JB", "action": "PR up-to-date houden", "project_architect": "Jamie", "typology": "Residential; Transformation", "programma": "Transformatie; Ypsilon", "client": "Molsbergen", "developer": null, "collaboration": "Deltavormgroep - Landschap", "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Hilton Renovatie", "location": "Amsterdam", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "JB", "action": "regel bouwfotos", "project_architect": "Koos", "typology": "Hospitality; Renovation", "programma": "Renovatie; Verbouwing rijksmonument", "client": "Hilton", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": "Proces is interessanter dan eindresultaat. Gevel blijft identiek. Bouwfoto's kunnen interessant zijn", "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Boogiewood Fase 1", "location": "Den Haag", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": "2027-10-01", "next_milestone": "Find out", "next_milestone_date": null, "partner": "JB", "action": null, "project_architect": "Lennart", "typology": "Residential; Office", "programma": "Mixed use; sociale woning; bedrijf", "client": "VORM", "developer": null, "collaboration": null, "last_media_post": "2026-08-26", "info": "Houtbouw is begonne", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Hondsrugweg Hessenbergweg", "location": "Amsterdam", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": "Zie actie", "next_milestone": "Completion", "next_milestone_date": "Zie actie", "partner": "OS", "action": "status vragen aan PA. Is bijna klaar. Contact leggen met OG", "project_architect": "Maarten", "typology": "Residential; Office; Retail", "programma": "residential; office; commercial plint; social housing", "client": "Green Tree Properties", "developer": null, "collaboration": null, "last_media_post": null, "info": "Woningen opgekocht door Graystar.", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Merwede Portaal", "location": "Utrecht", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": "Zie actie", "next_milestone": "Completion", "next_milestone_date": "Zie actie", "partner": "CZ", "action": "Achterhalen wanneer het klaar is. DIT GAAT RAP!", "project_architect": "maarten", "typology": "Residential", "programma": "300 sociale woningen; actieve plint; levensloopbestendige woningen; dragers vragers woningen; verschillende types en groottes", "client": "Portaal", "developer": "Aannemer is OG: ???", "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Gildenhof blok 1", "location": "Zwolle", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": null, "next_milestone": "Topping Out", "next_milestone_date": "2026-09-02", "partner": "OS", "action": "Hoogste punt woensdag 2/9/26 - 12:00. PA weet opleverdatum", "project_architect": "Maarten; Sander", "typology": "Residential", "programma": "Sociale woningbouw", "client": "Dura Trebbe", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, "Topping out", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": [{"month_idx": 1, "label": "PR: Linkedin"}]}, {"name": "De Geus", "location": "Leiden", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": null, "next_milestone": "Completion", "next_milestone_date": "Zie actie", "partner": "OS", "action": "status vragen aan PA", "project_architect": "Martin", "typology": "Residential; Leisure", "programma": "Residential; Leisure; Bioscoop; Restaurant", "client": "AKOR", "developer": null, "collaboration": "Bioscopen Leiden BV; Goudstikker-De Vries BV; Huygen Installatieadviseurs; LBP|Sight; Akor BV", "last_media_post": null, "info": null, "resources": null, "link_web": "https://ozarchitect.nl/de-geus/", "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Schieveste Bouwveld A1", "location": "Schiedam", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": null, "next_milestone": "Completion", "next_milestone_date": "Zie actie", "partner": "CZ", "action": "status vragen aan PA", "project_architect": "Martin", "typology": "Residential; Hospitality", "programma": "Starters Woontoren: cafe op plint", "client": "Synchroon;", "developer": "Van Omme & De Groot aannemer", "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "VKV-laan 102", "location": "Groningen", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": "2027-10-01", "next_milestone": "Find out", "next_milestone_date": null, "partner": "CZ", "action": "status vragen aan PA", "project_architect": "Martin", "typology": "Residential", "programma": "Ranke woontoren met innovatieve bouwmethode waardoor het snel gaat. Goede participatie. Integraal ontworpen met landschapper", "client": "Rottinghuis", "developer": null, "collaboration": "wie is de landschapper?", "last_media_post": null, "info": null, "resources": null, "link_web": "https://www.rottinghuis.nl/nl/projecten/nova", "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Completion", null, null], "pr_rows": []}, {"name": "Centrum Wijchen fase 1", "location": "Wijchen (Nijmegen)", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": "2029-01-01", "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": "status vragen aan PA", "project_architect": "Martin; Gijs", "typology": "Residential; Retail; Hospitality", "programma": "Woningen; Detailhandel; hotel; Sociale woningen;  parkeergarage", "client": "Terstegen", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Osdorpplein 113", "location": "Amsterdam", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": "status vragen aan PA", "project_architect": "Rogier", "typology": "Retail; Transformation", "programma": "Transformatie winkelplint", "client": "Kroonenberg Groep BV", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Monchyplein", "location": "Den Haag", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": "zie actie", "next_milestone": "Start Construction", "next_milestone_date": "Find out", "partner": "OS", "action": "Bouw gestart in aug. Met OG contact leggen voor communicatie", "project_architect": "Sander", "typology": "Residential; Transformation", "programma": "Transformatie van kantoor naar woningbouw", "client": "Sense Real Estate", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Uilenstede Student Experience", "location": "Amstelveen", "status": "Active", "phase": "18. Construction", "next_phase": "20. Completion", "next_phase_date": "zie actie", "next_milestone": "Start Construction", "next_milestone_date": "Find out", "partner": "SK", "action": "Posten over start bouw! Wanneer beoogde oplevering", "project_architect": "Sander", "typology": "Residential; Student", "programma": "Studentenwoningen", "client": "Student Experience", "developer": "PlezierBouw", "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": ["Start Const.", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": [{"month_idx": 1, "label": "PR: Social Media & Website"}]}, {"name": "Ravel TU Delft", "location": "Delft", "status": "Active", "phase": "16. Development", "next_phase": "17. Start Construction", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "JB", "action": "status vragen aan PA", "project_architect": "Gijs", "typology": "Residential; Student; Renovation", "programma": "Student Housing; ReUse; Modular", "client": "Student Experience;", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Schonenvaert", "location": "Haarlem", "status": "Active", "phase": "16. Development", "next_phase": "17. Start Construction", "next_phase_date": "2027-07-01", "next_milestone": "Start Construction", "next_milestone_date": "2027-07-01", "partner": "OS", "action": "11/26 contact met communicatie OG", "project_architect": "Maarten", "typology": "Residential", "programma": "Residential", "client": "Egeria Real Estate Development; New Cheese Development", "developer": null, "collaboration": "BOOM Landscape; Van Rossum; Wolf Dikken Adviseurs; Frontwise Face; Copper8", "last_media_post": null, "info": null, "resources": null, "link_web": "https://ozarchitect.nl/schonenvaert/", "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, "Muni Go/No Go", null, null, null, null, null, null, "Start Const.", null, null, null, null, null], "pr_rows": [{"month_idx": 3, "label": "PR: Prep Social Media"}]}, {"name": "Marktkwartier W1", "location": "Amsterdam", "status": "Active", "phase": "16. Development", "next_phase": "17. Start Construction", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": null, "project_architect": "Martin", "typology": "Residential; Hospitality", "programma": "250 woningen; commerciele plint; sociale plint; horeca;", "client": "Ballast Nedam & VolkerWessels", "developer": null, "collaboration": null, "last_media_post": null, "info": "omgevingsvergunning afwachten", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Diamond House (Villa February Point)", "location": "Bahama's", "status": "Active", "phase": "15. UO", "next_phase": "17. Start Construction", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "JB", "action": "status vragen aan PA", "project_architect": "AK", "typology": "Villa", "programma": "Villa", "client": "The Sandt Investment Engineers B.V.", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Overschiestraat Garden of Eden", "location": "Amsterdam", "status": "Active", "phase": "15. UO", "next_phase": "17. Start Construction", "next_phase_date": "2027-01-05", "next_milestone": "Start Construction", "next_milestone_date": "2027-01-05", "partner": "JB", "action": null, "project_architect": "Farida", "typology": "Residential", "programma": "Woningbouw - 70.000m2", "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": "3e partij doet UO. Bouwvergunning is binnen. Start misschien eerder dan q1-27", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, "Start Const.", null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "E-Buurt Oost", "location": "Amsterdam", "status": "Active", "phase": "15. UO", "next_phase": "17. Start Construction", "next_phase_date": "2026-10-01", "next_milestone": "Start Construction", "next_milestone_date": "2026-10-01", "partner": "CZ", "action": null, "project_architect": "Farida", "typology": "Residential; Retail", "programma": "2 woontorens 225 huur/koop woningen; commerciele en maatschappelijke plint", "client": "Wonan; Altera", "developer": null, "collaboration": null, "last_media_post": null, "info": "OZ t/m TO. Aannemer doet UO", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, "Start Const.", null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": [{"month_idx": 1, "label": "PR: social media & website"}]}, {"name": "Aletta Jacobslaan fase 1", "location": "Amsterdam", "status": "Active", "phase": "15. UO", "next_phase": "17. Start Construction", "next_phase_date": "zie actie", "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": "status vragen aan PA", "project_architect": "Martin; Sander", "typology": "Residential", "programma": "Residential", "client": "Heijmans Vastgoed; Voorheen Seald", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Mahler 1/ABN Zuidas", "location": "Amsterdam", "status": "Active", "phase": "15. UO", "next_phase": "17. Start Construction", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "JB", "action": "Co-architect als rol. We mogen publiceren. Zijn afspraken over!", "project_architect": "Sylvia", "typology": "Office", "programma": "Office", "client": "Victory (investeerder/ontwikkelaar uit UK)", "developer": null, "collaboration": "3XN", "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "At the Park 26", "location": "Rijswijk", "status": "Active", "phase": "14. TO", "next_phase": "15. UO", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": "Angelique; wie is OG. Martin; wie doet UO", "project_architect": "martin", "typology": "Residential; Office", "programma": "woningen; stadsgerichte bedrijvigheid (urban service centra; ambachtsmannen; werkruimtes)", "client": "???", "developer": null, "collaboration": null, "last_media_post": null, "info": "Gesprek met aannemer over wie UO doet", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Stelt-Zuid", "location": "Nijmegen", "status": "Active", "phase": "14. TO", "next_phase": "17. Start Construction", "next_phase_date": "zie actie", "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": "status vragen aan PA", "project_architect": "Jamie", "typology": "Residential; Villa", "programma": "Luxe woningbouw - 4 urban villa's op een dijk!", "client": "VanWonen", "developer": null, "collaboration": null, "last_media_post": null, "info": "UO door andere architect. Wij doen EC", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Livingstonelaan", "location": "Utrecht", "status": "Active", "phase": "12. DO", "next_phase": "13. DO+", "next_phase_date": "2026-09-02", "next_milestone": null, "next_milestone_date": null, "partner": "AK", "action": "DO-Optimalisatie. NTB", "project_architect": "Farida", "typology": "Residential; Student; Education", "programma": "Student Housing; Education (TBA)", "client": "Synchroon; SSH", "developer": null, "collaboration": null, "last_media_post": null, "info": "Oud project CZ", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "ABC Locatie", "location": "Nieuwegein", "status": "Active", "phase": "12. DO", "next_phase": "14. TO", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": "status vragen aan PA", "project_architect": "Cecilia", "typology": "Residential", "programma": "18.800 m2 BVO Residential. +4000m2 garage", "client": "Be Orange (Voorheen: Nardinc Vastgoed Nieuwegein B.V.)", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Hoefseweg 1", "location": "Amersfoort", "status": "Active", "phase": "12. DO", "next_phase": "14. TO", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": "Wachten op OG", "project_architect": "Cecilia", "typology": "Residential; Healthcare; Office", "programma": "woningen met mogelijkheid tot zorg woning + HQ Portaal Woningcorporatie", "client": "BeRight (huisvester)", "developer": null, "collaboration": null, "last_media_post": null, "info": "Wachten op keuzes OG", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Boogiewood Fase 2", "location": "Den Haag", "status": "On Hold", "phase": "12. DO", "next_phase": "14. TO", "next_phase_date": "2027-01-05", "next_milestone": null, "next_milestone_date": null, "partner": "JB", "action": null, "project_architect": "Lennart", "typology": "Residential; Office", "programma": "Woning (middensegment); bedrijf", "client": "VORM", "developer": null, "collaboration": null, "last_media_post": null, "info": "Is uitbreiding van Boogiewood fase 1", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, "Start TO", null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Schieveste Bouwveld A2-A3-A4", "location": "Schiedam", "status": "Active", "phase": "12. DO", "next_phase": "14. TO", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": "status vragen aan PA", "project_architect": "Martin", "typology": "Residential; Retail; Hospitality", "programma": "Parkeergarage; Horeca; detailhandel; woningen", "client": "Synchroon; VolkerWessels", "developer": "Dura Vermeer aannemer", "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "HWS 1", "location": "Spijkenisse", "status": "Active", "phase": "12. DO", "next_phase": "14. TO", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": "Wachten op rechtzaak op bouwaanvraag. Bij PA status vragen", "project_architect": "Rogier", "typology": "Residential", "programma": "Residential", "client": "Jongerius Invest Zuid Holland B.V.", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Goffertpark Portaal", "location": "Nijmegen", "status": "Active", "phase": "12. DO", "next_phase": "17. Start Construction", "next_phase_date": "2027-01-05", "next_milestone": "Start Construction", "next_milestone_date": "2027-01-05", "partner": "JB", "action": null, "project_architect": "Cecilia", "typology": "Residential", "programma": "Sociale Woningbouw", "client": "Portaal", "developer": null, "collaboration": null, "last_media_post": null, "info": "September Q3 27 bouw af", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, "Start Const.", null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Ronald McDonald Uithof", "location": "Utrecht", "status": "Active", "phase": "12. DO", "next_phase": "17. Start Construction", "next_phase_date": "2027-07-01", "next_milestone": "Start Construction", "next_milestone_date": "2027-07-01", "partner": "JB", "action": "Vragen of we start bouw willen posten?", "project_architect": "Cecilia", "typology": "Hospitality; Healthcare", "programma": "Ouders van zieke kinderen kunnen hier verblijven wanneer kind in ziekenhuis ligt", "client": "Ronald McDonald", "developer": null, "collaboration": null, "last_media_post": null, "info": "TBA - omgevingsvergunning Q2 27", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, "Start Const.", null, null, null, null, null], "pr_rows": []}, {"name": "Zeeburgerpad 80-85", "location": "Amsterdam", "status": "Active", "phase": "12. DO", "next_phase": "17. Start Construction", "next_phase_date": "2027-04-01", "next_milestone": "Start Construction", "next_milestone_date": "2027-04-01", "partner": "JB", "action": "Beelden maken - overwegen om op website te zetteen", "project_architect": "Cecilia", "typology": "Residential; Office", "programma": "Mixed use; woning; bedrijf", "client": "PEAK / Borgesse", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, "Start Const.", null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Zeeburgerpad - Lingotto", "location": "Amsterdam", "status": "Active", "phase": "12. DO", "next_phase": "17. Start Construction", "next_phase_date": "2027-04-01", "next_milestone": "Start Construction", "next_milestone_date": "2027-04-01", "partner": "JB", "action": "Beelden maken - overwegen om op website te zetteen", "project_architect": "Gijs", "typology": "Residential; Office", "programma": "Mixed use; woning; bedrijf", "client": "Lingotto", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, "Start Const.", null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Zeeburgerpad 51", "location": "Amsterdam", "status": "Active", "phase": "12. DO", "next_phase": "17. Start Construction", "next_phase_date": "2027-04-01", "next_milestone": "Start Construction", "next_milestone_date": "2027-04-01", "partner": "JB", "action": "Beelden maken - overwegen om op website te zetteen", "project_architect": "Gijs", "typology": "Residential; Office", "programma": "Mixed use; woning; bedrijf", "client": "Lingotto", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, "Start Const.", null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Diamond House Interieur", "location": "Bahamas", "status": "Active", "phase": "12. DO", "next_phase": "17. Start Construction", "next_phase_date": "2026-09-01", "next_milestone": "Start Construction", "next_milestone_date": "2026-09-01", "partner": "AK", "action": "Overwegen om interieur te posten", "project_architect": "Veronica", "typology": "Interior", "programma": "interior", "client": "The Sandt Investment Engineers B.V.", "developer": null, "collaboration": "Traanberg", "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, "Start Const.", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": [{"month_idx": 1, "label": "PR: Website update"}]}, {"name": "Molenzoom", "location": "Houten", "status": "Active", "phase": "11. VO", "next_phase": "12. DO", "next_phase_date": "2026-09-30", "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": "NTB", "project_architect": "Farida", "typology": "Residential", "programma": "20.000m2 Residential", "client": "Fortius Real Estate Development B.V.", "developer": null, "collaboration": null, "last_media_post": null, "info": "momenteel alleen west. Gedeelte oost moet nog worden vergeven", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Curiedriehoek Zandvoort", "location": "Haarlem", "status": "Active", "phase": "11. VO", "next_phase": "12. DO", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "JB", "action": null, "project_architect": "Jamie", "typology": "Residential", "programma": "3 woongebouwen", "client": "Ontwikkelmaatschappij Curiedex", "developer": null, "collaboration": null, "last_media_post": null, "info": "NTB", "resources": null, "link_web": "https://www.zandvoortsecourant.nl/nieuws/actueel/20430/woningbouwproject-curiedex-gaat-volgende-fase-in", "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Gildenhof fase 2", "location": "Zwolle", "status": "Active", "phase": "11. VO", "next_phase": "12. DO", "next_phase_date": "2026-10-01", "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": null, "project_architect": "Maarten", "typology": "Residential", "programma": "Woningbouw - 4 blokken", "client": "Dura Trebbe", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "JM 24", "location": "Amsterdam", "status": "Active", "phase": "11. VO", "next_phase": "12. DO", "next_phase_date": "2026-10-01", "next_milestone": null, "next_milestone_date": null, "partner": "JB", "action": null, "project_architect": "Martin", "typology": "Residential; Office", "programma": "Mixed use; woning; bedrijf", "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": "Student Experience & VdValk hotel daarnaast ook door OZ gedaan", "resources": null, "link_web": "Joan Muyskenweg", "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Schieveste Bouwveld A5-A6-A7", "location": "Schiedam", "status": "Active", "phase": "11. VO", "next_phase": "12. DO", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": "klantverhouding achterhalen", "project_architect": "Martin", "typology": "Residential; Retail", "programma": "Parkeergarage; Supermarkt; detailhandel; woningen", "client": "Synchroon; VolkerWessels: Dura; Van Omme & De Groot", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Paviljoen station Holendrecht", "location": "Holendrecht", "status": "Active", "phase": "10. SO", "next_phase": "11. VO", "next_phase_date": "zie actie", "next_milestone": null, "next_milestone_date": null, "partner": "SK", "action": "TBA - wel 2026", "project_architect": "Cecilia", "typology": "Leisure", "programma": "Paviljoen; Sport & Spel-inrichting", "client": "Gemeente Amsterdam", "developer": null, "collaboration": null, "last_media_post": null, "info": "Wachten op GO/NO GO gemeente", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Ondaatje", "location": "Utrecht", "status": "Active", "phase": "10. SO", "next_phase": "11. VO", "next_phase_date": "2026-10-01", "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": null, "project_architect": "Farida", "typology": "Residential", "programma": "Sociale woningbouw; woningbouw", "client": "Portaal", "developer": null, "collaboration": null, "last_media_post": null, "info": "Oud Project CZ", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Energieweg Dynamostraat", "location": "Den Haag", "status": "Active", "phase": "10. SO", "next_phase": "11. VO", "next_phase_date": "Zie actie", "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": "NTB", "project_architect": "Farida", "typology": "Residential; Healthcare", "programma": "Huisvesting van gevoelige groepen: verslaafde; dak-thuislozen.", "client": "Wdevelopment", "developer": null, "collaboration": null, "last_media_post": null, "info": "Afwachten. Geen idee. Politiek ding", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "BUAS Uitbreiding", "location": "Breda", "status": "Active", "phase": "10. SO", "next_phase": "11. VO", "next_phase_date": "2027-01-05", "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": null, "project_architect": "Farida (NTB)", "typology": "Residential; Student; Education", "programma": "Studentenwoningen; Uitbreiding plint van gaming industrie faculteit", "client": "Slokker", "developer": null, "collaboration": null, "last_media_post": null, "info": "Elke fase wordt opnieuw aanbesteed. SO 01-2027 klaar", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Euterpe Park", "location": "Oss", "status": "Active", "phase": "10. SO", "next_phase": "11. VO", "next_phase_date": "2026-10-01", "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": "NTB", "project_architect": "Jamie", "typology": "Residential; Retail", "programma": "Residential with commercial plint and parking", "client": "Four-D", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "HWS 2", "location": "Spijkenisse", "status": "On Hold", "phase": "10. SO", "next_phase": "11. VO", "next_phase_date": "Zie actie", "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": "Wachten op nader bericht van OG. Gemeente doet moeilijk", "project_architect": "Jamie", "typology": "Residential", "programma": "12.000m2 Residential", "client": "Jongerius Invest Zuid Holland B.V.", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Begijnenhof 35", "location": "Eindhoven", "status": "On Hold", "phase": "10. SO", "next_phase": "11. VO", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": "OS vraagt na bij gemeente voor stroomaansluiting", "project_architect": "Maarten", "typology": "Residential; Student", "programma": "Student living", "client": "Nedbel Vastgoed V B.V.", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Centrum Wijchen fase 2", "location": "Wijchen (Nijmegen)", "status": "Active", "phase": "10. SO", "next_phase": "11. VO", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": null, "project_architect": "Martin; Gijs", "typology": "Residential; Hospitality", "programma": "2 appartementen; stadscafe; parkeergarage aan het Wijchersmeer;", "client": "Terstegen", "developer": null, "collaboration": null, "last_media_post": null, "info": "Wachten op nader bericht over vervolg VO", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Palazzo Cisterna Torino", "location": "Italy, Turin", "status": "Active", "phase": "10. SO", "next_phase": "11. VO", "next_phase_date": "2026-12-01", "next_milestone": "Municipal Go/No-Go", "next_milestone_date": "2026-10-01", "partner": "AK", "action": "momenteel nog niks posten!", "project_architect": "Stefano", "typology": "interior; scenografie; office; transformation", "programma": "interior; scenografie; office; transformation", "client": "Metropolitan City Torino", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, "Municipal Go/No-Go", null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Veerplein 130", "location": "Vlaardingen", "status": "Active", "phase": "09. Studie fase", "next_phase": "10. SO", "next_phase_date": "2027-01-01", "next_milestone": "Municipal Go/No-Go", "next_milestone_date": null, "partner": "AK", "action": "Wachten op akkoord gemeente", "project_architect": "Cecilia", "typology": "Residential; Retail; Leisure", "programma": "215 koopwoningen; retail; leisure (bios) - wooncomplex", "client": "Green", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "BCP Fase 2 - achter binckcity", "location": "Den Haag", "status": "On Hold", "phase": "09. Studie fase", "next_phase": "10. SO", "next_phase_date": "2026-10-01", "next_milestone": null, "next_milestone_date": null, "partner": "JB", "action": null, "project_architect": "Farida", "typology": "Residential", "programma": "woningbouw achter Binckcity", "client": "VORM", "developer": "VORM", "collaboration": null, "last_media_post": null, "info": "gemeente en VORM nog in gesprek over maat", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Nike", "location": "Hilversum", "status": "On Hold", "phase": "09. Studie fase", "next_phase": "10. SO", "next_phase_date": "zie actie", "next_milestone": null, "next_milestone_date": null, "partner": "SK", "action": "hoop 2026", "project_architect": "Farida", "typology": "Mixed Use; Hospitality; Residential", "programma": "Mixed use; hotel; showroom; housing", "client": "GA Capital", "developer": "GA Capital", "collaboration": "Being Developer", "last_media_post": null, "info": "TBA", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Werninkterrein", "location": "Leiden", "status": "On Hold", "phase": "09. Studie fase", "next_phase": "10. SO", "next_phase_date": "2026-10-01", "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": null, "project_architect": "Farida", "typology": "Urban Planning", "programma": "Stedenbouwkundig plan hebben wij gemaakt en is af. Nu door naar verdeling. OZ 1/3 deel. Transformatie hal; totaal 700 woningen (1/3e OZ); commerciele ruimtes; horeca; werkruimtes; roeiclub; waterscouting; kinderdagverblijf", "client": "ABB & Wdevelopment", "developer": null, "collaboration": "Samenwerken met 2 anderen", "last_media_post": null, "info": "Wachten op OG en Gemeente over ontsluitingsprincipes.", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Willinkhof", "location": "Emmen", "status": "On Hold", "phase": "09. Studie fase", "next_phase": "10. SO", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": null, "project_architect": "Farida", "typology": "Residential; Retail", "programma": "Woningen; Detailhandel", "client": "Gemeente Emmen", "developer": null, "collaboration": null, "last_media_post": null, "info": "wachten op plan van participatie", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Wenckebachweg WTV-oost K12+13", "location": "Amsterdam", "status": "Active", "phase": "09. Studie fase", "next_phase": "10. SO", "next_phase_date": "2026-10-01", "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": null, "project_architect": "maarten", "typology": "Mixed Use; Residential; Church; Healthcare; Office", "programma": "Woningen bovenop: Kerk; therapeutisch centrum; opvangcentrum voor mentale gezondheidsproblemen; bedrijf in fitnessapparaten; loodgietersbedrijf;", "client": "Slokker en Rochdale", "developer": null, "collaboration": null, "last_media_post": null, "info": "Stedenbouwkundig onderzoek afgerond", "resources": null, "link_web": "VO klaar 03-27", "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Parkzicht", "location": "Leiden", "status": "On Hold", "phase": "09. Studie fase", "next_phase": "10. SO", "next_phase_date": "zie actie", "next_milestone": null, "next_milestone_date": null, "partner": "JB", "action": "NTB", "project_architect": "Maarten", "typology": "Residential", "programma": "Woning", "client": "VORM", "developer": null, "collaboration": null, "last_media_post": null, "info": "OG & Gemeente in discussie - wachten op bericht", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "HSW fase 2", "location": "Amsterdam", "status": "On Hold", "phase": "09. Studie fase", "next_phase": "10. SO", "next_phase_date": "Zie actie", "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": "Wachten op activering", "project_architect": "Martin", "typology": "Residential", "programma": "Sociale woningbouw en koopwoningen", "client": "Corendon", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Harga", "location": "Schiedam", "status": "Active", "phase": "09. Studie fase", "next_phase": "10. SO", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": null, "project_architect": "Martin", "typology": "Residential; Urban planning", "programma": "Stedenbouwkundig plan is af. 280 woningen", "client": "VolkerWessels", "developer": null, "collaboration": null, "last_media_post": null, "info": "Wachten op goedkeuring gemeente. Alleen naar buiten met toestemming van OG", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Van Bentumfabriek", "location": "Nieuwegein", "status": "Active", "phase": "09. Studie fase", "next_phase": "10. SO", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": null, "project_architect": "NTB", "typology": "Residential; Transformation", "programma": "transformatie monumentale hal tot woningen; commerciele en maatschappelijke voorzieningen in plint", "client": "??", "developer": null, "collaboration": null, "last_media_post": null, "info": "Stedenbouwkundig onderzoek afgerond. Aanpassen op juridische kaders", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Ln Corpus den Hoorn 102, Gron", "location": "Groningen", "status": "Active", "phase": "09. Studie fase", "next_phase": "10. SO", "next_phase_date": "2026-12-01", "next_milestone": null, "next_milestone_date": null, "partner": "AK", "action": "Contact leggen met OG voor communicatie", "project_architect": "Stefano/NTB", "typology": "Residential; Office", "programma": "Mixed Use; 4-5 kleine torens met commerciele plint. Bestaand kantoor gebouw in het midden. Voornamelijk woningen. 60.000m2", "client": "Midas Vastgoed", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Rabat Morocco", "location": "Morocco", "status": "Active", "phase": "07. Wachten op uitslag DS", "next_phase": "08. Uitslag DS", "next_phase_date": "2026-10-15", "next_milestone": "Competitie uitslag", "next_milestone_date": "2026-10-15", "partner": "AK", "action": "wait for competition result. Likely mid october", "project_architect": "Stefano", "typology": "Masterplan; Residential; Hospitality", "programma": "Masterplan; Residential; Hotel;", "client": "Rabat region Amenagements", "developer": null, "collaboration": null, "last_media_post": null, "info": "Moroccan elections are 23/9 --> competition result is delayed", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, "Competitie uitslag", null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Mumbai Bank HQ", "location": "India, Mumbai", "status": "Active", "phase": "07. Wachten op uitslag DS", "next_phase": "08. Uitslag DS", "next_phase_date": "NTB", "next_milestone": null, "next_milestone_date": "NTB", "partner": "SK", "action": "Wachten op uitslag competitie", "project_architect": null, "typology": null, "programma": "Office", "client": "Axis Bank", "developer": null, "collaboration": "Co-Lab (CO-Architect)", "last_media_post": "TBA", "info": "Wachten op uitslag competitie", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Stadshart Shopping Centre", "location": "Amstelveen", "status": "Active", "phase": "06. Indienen Definitieve Selectie", "next_phase": "07. Wachten op uitslag DS", "next_phase_date": "2026-09-15", "next_milestone": null, "next_milestone_date": "2026-09-15", "partner": "SK", "action": "Wachten op uitslag competitie", "project_architect": null, "typology": null, "programma": "Mixed use: retail;", "client": "Westfield; Gemeente Amstelveen", "developer": null, "collaboration": null, "last_media_post": "TBA", "info": "Wachten op uitslag competitie", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Dair", "location": "Cairo", "status": "Active", "phase": "05. Voorbereiden definitieve selectie", "next_phase": "06. Indienen Definitieve Selectie", "next_phase_date": "2026-09-11", "next_milestone": null, "next_milestone_date": "2026-09-11", "partner": "AK", "action": "Collect References; review Q&A", "project_architect": null, "typology": null, "programma": "55.000m2; retail; F+B; office; residential", "client": "CityStars Properties", "developer": null, "collaboration": null, "last_media_post": null, "info": "Call with Omar 25/8/26", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Fountaine", "location": "Cairo", "status": "Active", "phase": "05. Voorbereiden definitieve selectie", "next_phase": "06. Indienen Definitieve Selectie", "next_phase_date": "2026-09-11", "next_milestone": null, "next_milestone_date": "2026-09-11", "partner": "AK", "action": "Collect References; review Q&A", "project_architect": null, "typology": null, "programma": "20.000m2; retail; F+B; office; residential", "client": "CityStars Properties", "developer": null, "collaboration": null, "last_media_post": null, "info": "Call with Omar 25/8/26", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Kantoor De Vergulde Hand", "location": "Vlaardingen", "status": "Active", "phase": "05. Voorbereiden definitieve selectie", "next_phase": "06. Indienen Definitieve Selectie", "next_phase_date": "2026-09-14", "next_milestone": null, "next_milestone_date": "2026-09-14", "partner": "OS", "action": "Bekendmaking 25 sep. Start 4/10", "project_architect": "Maarten (NTB)", "typology": null, "programma": "Kantoor - low tech zoals ONO", "client": "Hoog Heemraadschap Delfland", "developer": null, "collaboration": "Aveco de Bond", "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Suikerzijde", "location": "Groningen", "status": "Active", "phase": "04. Wachten op uitslag VS", "next_phase": "05. Voorbereiden definitieve selectie", "next_phase_date": "2026-09-28", "next_milestone": null, "next_milestone_date": "2026-09-28", "partner": "OS", "action": null, "project_architect": "Martin", "typology": null, "programma": "370 woningen.", "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": "4/10 bekendmaking. 4/11 fase 2 met 3 partijen", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Nieuwe Reuvens", "location": "Leiden", "status": "Active", "phase": "02. Voorbereiden voorselectie", "next_phase": "03. Indienen voorselectie", "next_phase_date": "2026-09-14", "next_milestone": null, "next_milestone_date": "2026-09-14", "partner": "OS", "action": "Take lead. OS en SK for writing", "project_architect": null, "typology": null, "programma": "Education", "client": "Universiteit Leiden", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "De Waalse School", "location": "Rotterdam", "status": "Active", "phase": "02. Voorbereiden voorselectie", "next_phase": "03. Indienen voorselectie", "next_phase_date": "2026-09-18", "next_milestone": null, "next_milestone_date": "2026-09-18", "partner": "OS", "action": "Take lead. OS en SK for writing", "project_architect": null, "typology": null, "programma": "Education", "client": "SORA", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Sluisbuurt 10C", "location": "Amsterdam", "status": "Active", "phase": "02. Voorbereiden voorselectie", "next_phase": "03. Indienen voorselectie", "next_phase_date": "2026-10-03", "next_milestone": null, "next_milestone_date": "2026-10-03", "partner": "JB", "action": "Start writing for construction", "project_architect": null, "typology": null, "programma": "Residential; commercial; landscape", "client": "Gemeente Amsterdam", "developer": "Less=Real", "collaboration": "Burt", "last_media_post": null, "info": "Pre-selectie submission schrijvne", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Tender Kavel 2 Zuidas", "location": "Amsterdam", "status": "Active", "phase": "02. Voorbereiden voorselectie", "next_phase": "03. Indienen voorselectie", "next_phase_date": "2026-11-08", "next_milestone": null, "next_milestone_date": "2026-11-08", "partner": "SK", "action": "Wachten op bericht van ontwikkelaar", "project_architect": null, "typology": null, "programma": "Residential; Office; Retail", "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Tweebosbuurt Zorgvastgoed", "location": "Rotterdam Zuid", "status": "Active", "phase": "02. Voorbereiden voorselectie", "next_phase": "03. Indienen voorselectie", "next_phase_date": "2026-11-18", "next_milestone": null, "next_milestone_date": "2026-11-18", "partner": "CZ", "action": "Wachten op nader bericht", "project_architect": null, "typology": null, "programma": "Healthcare; Residential", "client": "Gemeente Rotterdam", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": "https://www.tender.app/aanbestedingen-2026/ontwikkeling-tweebosbuurt-blok-p2", "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Het Hart van de Nieuwe K-Buurt", "location": "Amsterdam", "status": "Active", "phase": "02. Voorbereiden voorselectie", "next_phase": "03. Indienen voorselectie", "next_phase_date": "2026-09-01", "next_milestone": null, "next_milestone_date": "2026-09-01", "partner": "CZ", "action": "Wachten op input voor Kere en landschapper", "project_architect": null, "typology": null, "programma": "Urban Planning; Residential; Commercial; Retail", "client": "Gemeente Amsterdam", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Student housing", "location": "Greece", "status": "Active", "phase": "02. Voorbereiden voorselectie", "next_phase": "03. Indienen voorselectie", "next_phase_date": "2026-09-18", "next_milestone": null, "next_milestone_date": "2026-09-18", "partner": "AK", "action": null, "project_architect": null, "typology": null, "programma": "student housing; transformatie", "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Townland", "location": "India", "status": "Active", "phase": "01. Identified", "next_phase": "01. Identified", "next_phase_date": "NTB", "next_milestone": null, "next_milestone_date": "NTB", "partner": "SK", "action": "Wachten op goedkeuring voor linkedin bericht", "project_architect": null, "typology": null, "programma": "Exploration", "client": null, "developer": null, "collaboration": "Townland", "last_media_post": null, "info": "Finish ppt & MoU", "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Bezoekerscentrum", "location": "Zuid Tirol", "status": "Active", "phase": "01. Identified", "next_phase": "02. Voorbereiden voorselectie", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "AK", "action": "wachten op oordeel & dan Andrea T contacten", "project_architect": null, "typology": null, "programma": null, "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": "https://ted.europa.eu/en/notice/-/detail/577447-2026", "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Rotterdam Waterkant losse kavels", "location": null, "status": "Unknown", "phase": null, "next_phase": null, "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": null, "action": null, "project_architect": null, "typology": null, "programma": null, "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "register", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Diamond House", "location": "Bahama's", "status": "Active", "phase": "15. UO", "next_phase": "17. Start Construction", "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "JB", "action": null, "project_architect": null, "typology": null, "programma": null, "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "timeline", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "11 locaties - Woondeal projecten - stedenbouwkundig", "location": "Bonaire", "status": "Active", "phase": "Development", "next_phase": null, "next_phase_date": null, "next_milestone": "Construction", "next_milestone_date": null, "partner": "CZ", "action": "Wachten op toestemming van overheid voor publicatie", "project_architect": null, "typology": "Urban Planning", "programma": ">2200 woningen -zelf-functionerende woningen (energie/water) - huisvesting voor arme bonaire-inwoners - kwart van de woningen op bonaire", "client": "Overheid", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "nda", "is_nda": true, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "dawari - Woondeal", "location": "Bonaire", "status": "Active", "phase": "Construction", "next_phase": null, "next_phase_date": null, "next_milestone": "Completed", "next_milestone_date": null, "partner": "CZ", "action": "net aanbesteed aan aannemer", "project_architect": null, "typology": null, "programma": "woningen", "client": null, "developer": null, "collaboration": "Kuyper Compangnons", "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "nda", "is_nda": true, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "rincon pariba - Woondeal", "location": "Bonaire", "status": "Active", "phase": "Development", "next_phase": null, "next_phase_date": null, "next_milestone": "Construction", "next_milestone_date": null, "partner": "CZ", "action": "aanbesteding gaat starten", "project_architect": null, "typology": null, "programma": "woningen", "client": null, "developer": null, "collaboration": "Kuyper Compangnons", "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "nda", "is_nda": true, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "nikiboko - Woondeal", "location": "Bonaire", "status": "Active", "phase": "Development", "next_phase": null, "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": "ontwerpfase", "project_architect": null, "typology": null, "programma": ">600 woningen + voorzieningen", "client": null, "developer": null, "collaboration": "Kuyper Compangnons", "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "nda", "is_nda": true, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "mentor - Woondeal (NDA!!!!!!)", "location": "Bonaire", "status": "Active", "phase": null, "next_phase": null, "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "CZ", "action": "NIKS OVER ZEGGEN", "project_architect": null, "typology": null, "programma": null, "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "nda", "is_nda": true, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Nosbario", "location": "Bonaire", "status": "Active", "phase": "Studie fase", "next_phase": null, "next_phase_date": null, "next_milestone": "Design - SO", "next_milestone_date": "2026-09-15", "partner": "CZ", "action": "NIKS OVER ZEGGEN - veel concurrentie - politiek gevoelig", "project_architect": null, "typology": null, "programma": "110 zorgwoningen", "client": "ZW Groep; Stichting Kokari", "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "nda", "is_nda": true, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Oostpunt (absoluut niks naar buiten)", "location": "Curacao", "status": "On Hold", "phase": "Studie fase", "next_phase": null, "next_phase_date": null, "next_milestone": null, "next_milestone_date": "Q1 2027", "partner": "CZ", "action": "Wachten op nieuwe studie naar koraal. Q1 '27", "project_architect": null, "typology": null, "programma": "5500 ha stedenbouwkundig plan; 28.000 woningen; 10.000 hotelkamers; 65% natuur; natuur tussen ontwikkelingen", "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "nda", "is_nda": true, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Exuma", "location": "Bahama's", "status": "Active", "phase": "Studie fase", "next_phase": null, "next_phase_date": null, "next_milestone": "Design - SO", "next_milestone_date": "Q1/Q2 2027", "partner": "CZ", "action": "Wachten op goedkeuring overheid", "project_architect": null, "typology": null, "programma": "Stedenbouwkundig plan 100ha stadsontwikkeling is af. Museum;woningen;cultureel centrum; horeca; school; detailhandel; winkelcentrum; villa's; shadowfarming", "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "nda", "is_nda": true, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Winter Harbour", "location": "Bratislava", "status": "Lost", "phase": "Competition Selection", "next_phase": null, "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "SK", "action": "Niet publiceren (1e ronde niet gehaald)", "project_architect": null, "typology": null, "programma": null, "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "lost", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Leyten architectenselectie", "location": "Zoetermeer", "status": "Lost", "phase": "Competition Selection", "next_phase": null, "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": null, "action": "Niet publiceren (1e ronde niet gehaald)", "project_architect": null, "typology": "Residential", "programma": null, "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "lost", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Mariahoeve", "location": "Den Haag", "status": "Lost", "phase": "Competition Final", "next_phase": null, "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": null, "action": "Niet publiceren (1e ronde niet gehaald)", "project_architect": null, "typology": null, "programma": null, "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "lost", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "AMUD Campus", "location": "Albania", "status": "Lost", "phase": "Competition Final", "next_phase": null, "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "AK", "action": "Publish on website", "project_architect": null, "typology": "Education", "programma": null, "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "lost", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Budapest Airport", "location": "Budapest", "status": "Active", "phase": "Identified", "next_phase": null, "next_phase_date": null, "next_milestone": "Inschrijven voorselectie", "next_milestone_date": "2026-08-31", "partner": "SK", "action": "Find partner", "project_architect": null, "typology": null, "programma": "Mobility", "client": "Budapest Airport", "developer": null, "collaboration": "Arcadis", "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "lost", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Willem Tell", "location": "Apeldoorn", "status": "Lost", "phase": "Competitie uitslag", "next_phase": null, "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": null, "project_architect": null, "typology": null, "programma": null, "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "lost", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}, {"name": "Winkelcentrum Mariahoeve", "location": "Den Haag", "status": "Lost", "phase": "Competitie uitslag", "next_phase": null, "next_phase_date": null, "next_milestone": null, "next_milestone_date": null, "partner": "OS", "action": null, "project_architect": "Martin", "typology": null, "programma": null, "client": null, "developer": null, "collaboration": null, "last_media_post": null, "info": null, "resources": null, "link_web": null, "link_folder": null, "source": "lost", "is_nda": false, "gantt": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "pr_rows": []}]}</script>
+<script>
+const DATA = JSON.parse(document.getElementById('oz-data').textContent);
+const MONTHS = DATA.month_labels; // Aug-26 .. Dec-27, kept only for legacy tooltip text
+function statusClass(status){
+  if(status==='Active') return 'active';
+  if(status==='On Hold') return 'onhold';
+  if(status==='Completed') return 'completed';
+  if(status==='Lost') return 'lost';
+  return 'unknownstatus';
+}
+function statusLabel(status){ return status || 'Unclassified'; }
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(s){ return escapeHtml(s); }
+
+// ---- date helpers ----
+const TODAY = new Date();
+function parseLoose(val){
+  if(!val) return null;
+  if(typeof val === 'string'){
+    const m = val.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(m) return new Date(+m[1], +m[2]-1, +m[3]);
+    return null; // things like "Q1 2027" / "TBA" — precision not exact
+  }
+  return null;
+}
+function fmtDate(val){
+  if(!val) return '—';
+  const d = parseLoose(val);
+  if(d) return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  return val; // preserve original wording, e.g. "Q1 2027"
+}
+function daysUntil(val){
+  const d = parseLoose(val);
+  if(!d) return null;
+  return Math.round((d - new Date(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate()))/(1000*60*60*24));
+}
+
+// ---- week generation for the Gantt visual (Monday-start ISO weeks, Aug 2026 -> Dec 2027) ----
+function isoWeekNumber(date){
+  const target = new Date(date.valueOf());
+  const dayNr = (date.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = target.valueOf();
+  target.setMonth(0, 1);
+  if (target.getDay() !== 4) target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+  return 1 + Math.ceil((firstThursday - target) / 604800000);
+}
+function mondayOf(date){
+  const d = new Date(date);
+  const day = (d.getDay()+6)%7;
+  d.setDate(d.getDate()-day);
+  d.setHours(0,0,0,0);
+  return d;
+}
+const MONTH_ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const WEEKS = [];
+{
+  const start = mondayOf(new Date(2026,7,1));
+  const end = new Date(2028,0,3); // a couple days past year-end so the last week fully renders
+  let cursor = new Date(start);
+  let lastMonth = null;
+  while(cursor < end){
+    const m = cursor.getMonth();
+    WEEKS.push({
+      date: new Date(cursor),
+      weekNum: isoWeekNumber(cursor),
+      monthLabel: MONTH_ABBR[m],
+      monthStart: m !== lastMonth,
+    });
+    lastMonth = m;
+    cursor = new Date(cursor); cursor.setDate(cursor.getDate()+7);
+  }
+}
+function weekIndexForDate(d){
+  if(!d) return null;
+  const diffDays = Math.round((d - WEEKS[0].date)/86400000);
+  const idx = Math.floor(diffDays/7);
+  if(idx<0 || idx>=WEEKS.length) return null;
+  return idx;
+}
+const TODAY_WEEK_IDX = weekIndexForDate(new Date(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate()));
+function approxDateForMonth(monthIdx, day){
+  const year = 2026 + Math.floor((7+monthIdx)/12);
+  const month = (7+monthIdx)%12; // 0-indexed
+  const d = day||10;
+  return year + '-' + String(month+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+}
+
+// ---- communication / attention heuristics ----
+function commState(p){
+  if(p.comm_status) return {label:p.comm_status, cls: commClsFromLabel(p.comm_status)};
+  const text = ((p.action||'')+' '+(p.info||'')+' '+(p.name||'')).toLowerCase();
+  if(p.is_nda || text.includes('nda') || text.includes('niks over zeggen') || text.includes('absoluut niks')) return {label:'NDA / Do not publish', cls:'nda'};
+  if(text.includes('wachten') || text.includes('toestemming') || text.includes('goedkeuring') || text.includes('niet publiceren')) return {label:'Wait for permission', cls:'wait'};
+  if(text.includes('gevoelig') || text.includes('concurrentie')) return {label:'Coordinate — sensitive', cls:'wait'};
+  return {label:'Confirm before publishing', cls:'confirm'};
+}
+function commClsFromLabel(label){
+  if(/nda/i.test(label)) return 'nda';
+  if(/wait|coordinate/i.test(label)) return 'wait';
+  if(/free/i.test(label)) return 'free';
+  return 'confirm';
+}
+function commColor(cls){
+  if(cls==='nda') return 'background:var(--crimson-dim);color:var(--crimson);border:1px solid #B23A3255;';
+  if(cls==='wait') return 'background:var(--amber-dim);color:var(--amber);border:1px solid #C2542F55;';
+  if(cls==='free') return 'background:#2E7D6B1a;color:var(--teal);border:1px solid #2E7D6B55;';
+  return 'background:#8A887F26;color:var(--slate);border:1px solid #8A887F55;';
+}
+const COMM_OPTIONS = ['Free to communicate','Confirm before publishing','Coordinate — sensitive','Wait for permission','NDA / Do not publish'];
+
+// ---- phase progress helpers ----
+function phaseNum(phaseStr){
+  if(!phaseStr) return null;
+  const m = String(phaseStr).match(/^(\d+)\./);
+  return m ? parseInt(m[1],10) : null;
+}
+function phaseText(phaseStr){
+  if(!phaseStr) return null;
+  return String(phaseStr).replace(/^\d+\.\s*/,'');
+}
+function phaseCellHtml(p){
+  const curText = phaseText(p.phase) || '—';
+  const nextText = phaseText(p.next_phase);
+  const hasNext = nextText && nextText !== curText;
+  return `<span class="phase-cur">${escapeHtml(curText)}</span>${hasNext ? `<span class="phase-next">→ ${escapeHtml(nextText)}</span>` : ''}`;
+}
+function phaseBarRange(p){
+  const curNum = phaseNum(p.phase);
+  const nextNum = phaseNum(p.next_phase);
+  const isGate = curNum!==null && nextNum!==null && nextNum <= curNum; // out-of-sequence hold (e.g. "wait for municipality")
+  let end = null, source = null;
+  const exact = parseLoose(p.next_phase_date);
+  if(exact && p.next_phase){ end = weekIndexForDate(exact); source = 'phase'; }
+  if(end===null){
+    const msExact = parseLoose(p.next_milestone_date);
+    if(msExact){ end = weekIndexForDate(msExact); source = 'milestone'; }
+  }
+  if(end===null){ end = TODAY_WEEK_IDX; source = 'today'; }
+  end = Math.max(0, Math.min(end, WEEKS.length-1));
+  return {start:0, end, isGate, source};
+}
+
+// ================= DATA MODEL =================
+// Every project carries .milestones (array of {id,label,date,date_precision,notes})
+// and .pr_actions (array of {id,label,date,owner,status,notes,milestone_id}) with real
+// dates. When loading the bundled offline snapshot (which only recorded month precision),
+// we synthesize those arrays once from the legacy .gantt / .pr_rows shape; live data from
+// a connected Sheet already arrives in this shape with real dates.
+function computeDerived(p){
+  if(!p.milestones){
+    p.milestones = (p.gantt||[]).map((label,i)=> label ? {
+      id: p.name+'-gm'+i, label, date: approxDateForMonth(i,8), date_precision:'Month', notes:''
+    } : null).filter(Boolean);
+  }
+  if(!p.pr_actions){
+    p.pr_actions = (p.pr_rows||[]).map((r,j)=>({
+      id: p.name+'-gpr'+j, label:(r.label||'').replace(/^PR:\s*/,''), date: approxDateForMonth(r.month_idx,20),
+      owner: p.partner||'', status:'Planned', notes:'', milestone_id:null
+    }));
+  }
+  p.milestones.forEach(m=>{ m._week = weekIndexForDate(parseLoose(m.date)); });
+  p.pr_actions.forEach(r=>{ r._week = weekIndexForDate(parseLoose(r.date)); });
+}
+function findParentMilestone(p, pr){
+  if(pr.milestone_id){ const m = p.milestones.find(m=>m.id===pr.milestone_id); if(m) return m; }
+  if(!p.milestones.length) return null;
+  const prDate = parseLoose(pr.date);
+  if(!prDate) return p.milestones[0];
+  let best = p.milestones[0], bestDist = Infinity;
+  p.milestones.forEach(m=>{
+    const md = parseLoose(m.date);
+    if(!md) return;
+    const dist = Math.abs(md - prDate);
+    if(dist < bestDist){ bestDist = dist; best = m; }
+  });
+  return best;
+}
+function hasNearAttention(p){
+  return p.pr_actions.some(r=> r._week!==null && r._week>=TODAY_WEEK_IDX && r._week<=TODAY_WEEK_IDX+8);
+}
+
+// ================= MUTABLE STATE =================
+let PROJECTS = [];
+let API_URL = localStorage.getItem('oz_api_url') || '';
+let API_KEY = localStorage.getItem('oz_api_key') || '';
+const activeStatuses = new Set(['Active','On Hold']);
+let ndaOnly = false;
+const activePartners = new Set();
+let sortField = 'next_milestone_date';
+let sortDir = 'asc';
+const expanded = new Set();
+let currentWeekDays = 7, currentOutlookMonths = 6, currentInfoFilter = '';
+
+function isLive(){ return !!(API_URL && API_KEY); }
+
+// ================= API =================
+async function apiGet(){
+  const res = await fetch(API_URL + '?key=' + encodeURIComponent(API_KEY));
+  return res.json();
+}
+async function apiPost(action, payload){
+  const res = await fetch(API_URL, {
+    method:'POST',
+    body: JSON.stringify({key:API_KEY, action, payload}),
+  });
+  return res.json();
+}
+function mapApiToInternal(raw){
+  const projects = (raw.projects||[]).map(p=>({
+    id: p.id, name: p.name, location: p.location, status: p.status, phase: p.phase,
+    next_phase: p.next_phase, next_phase_date: p.next_phase_date,
+    next_milestone: p.next_milestone, next_milestone_date: p.next_milestone_date,
+    partner: p.partner, project_architect: p.project_architect, typology: p.typology,
+    programma: p.programma, client: p.client, developer: p.developer, collaboration: p.collaboration,
+    last_media_post: p.last_media_post, info: p.info, resources: p.resources,
+    link_web: p.link_web, link_folder: p.link_folder,
+    is_nda: p.is_nda===true || p.is_nda==='TRUE' || p.is_nda==='true',
+    comm_status: p.comm_status, action: p.action,
+    milestones: (raw.milestones||[]).filter(m=>m.project_id===p.id),
+    pr_actions: (raw.pr_actions||[]).filter(r=>r.project_id===p.id),
+  }));
+  return projects;
+}
+async function mutate(action, payload){
+  if(!isLive()){ showToast('Connect a data source first', true); return null; }
+  try{
+    const res = await apiPost(action, payload);
+    if(res.error){ showToast('Save failed: '+res.error, true); return null; }
+    setProjects(mapApiToInternal(res));
+    showToast('Saved');
+    return res;
+  }catch(err){
+    showToast('Save failed: '+err.message, true);
+    return null;
+  }
+}
+
+function showToast(msg, isError){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError?' error':'');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=> t.classList.remove('show'), 2600);
+}
+
+function setDsStatus(state, detail){
+  const dot = document.getElementById('dsDot');
+  const text = document.getElementById('dsText');
+  dot.className = 'ds-dot ' + state;
+  const labels = {
+    loading: 'Loading your data…',
+    live: 'Live — connected to your Sheet',
+    offline: 'Working from snapshot (no data source connected)',
+    error: 'Connection failed — ' + (detail||'check your URL and key') + '. Showing snapshot.',
+  };
+  text.textContent = labels[state] || '';
+  document.getElementById('dataSourceBtn').textContent = state==='live' ? 'Data source settings' : 'Connect data source';
+}
+
+async function boot(){
+  if(isLive()){
+    setDsStatus('loading');
+    try{
+      const raw = await apiGet();
+      if(raw.error) throw new Error(raw.error);
+      setProjects(mapApiToInternal(raw));
+      setDsStatus('live');
+      return;
+    }catch(err){
+      setDsStatus('error', err.message);
+    }
+  } else {
+    setDsStatus('offline');
+  }
+  setProjects(JSON.parse(JSON.stringify(DATA.projects)));
+}
+
+function setProjects(list){
+  PROJECTS = list;
+  PROJECTS.forEach((p,i)=>{ p.__idx = i; computeDerived(p); });
+  renderAll();
+}
+function renderAll(){
+  renderStatHeader();
+  buildPartnerChips();
+  renderGantt();
+  refreshWeek(currentWeekDays);
+  refreshOutlook(currentOutlookMonths);
+  renderInfo(currentInfoFilter);
+  document.getElementById('projectNameList').innerHTML = PROJECTS.map(p=>`<option value="${escapeAttr(p.name)}">`).join('');
+}
+
+// ================= STAT HEADER =================
+function renderStatHeader(){
+  document.getElementById('asOf').textContent = 'As of ' + TODAY.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) + ' — '+PROJECTS.length+' projects on file';
+  document.getElementById('statActive').textContent = PROJECTS.filter(p=>p.status==='Active').length;
+  document.getElementById('statHold').textContent = PROJECTS.filter(p=>p.status==='On Hold').length;
+  document.getElementById('statAttn').textContent = PROJECTS.filter(hasNearAttention).length;
+}
+
+// ================= PORTFOLIO FILTER STATE =================
+function visibleProjects(){
+  return PROJECTS.filter(p => (activeStatuses.has(p.status) || (ndaOnly && p.is_nda))
+    && (activePartners.size===0 || activePartners.has(p.partner || 'Unassigned')));
+}
+document.querySelectorAll('#statusFilters .chip[data-status]').forEach(chip=>{
+  chip.onclick = ()=>{
+    const s = chip.dataset.status;
+    if(activeStatuses.has(s)){ activeStatuses.delete(s); chip.classList.remove('active'); }
+    else { activeStatuses.add(s); chip.classList.add('active'); }
+    renderGantt();
+  };
+});
+document.getElementById('ndaChip').onclick = (e)=>{
+  ndaOnly = !ndaOnly;
+  e.currentTarget.classList.toggle('active', ndaOnly);
+  renderGantt();
+};
+
+function buildPartnerChips(){
+  const partnerCounts = {};
+  PROJECTS.forEach(p=>{ const k = p.partner || 'Unassigned'; partnerCounts[k] = (partnerCounts[k]||0)+1; });
+  const partnerNames = Object.keys(partnerCounts).sort((a,b)=> a==='Unassigned'?1 : b==='Unassigned'?-1 : a.localeCompare(b));
+  const partnerRow = document.getElementById('partnerFilters');
+  partnerRow.innerHTML = partnerNames.map(n=>`<button class="chip partner-chip ${activePartners.has(n)?'active':''}" data-partner="${escapeAttr(n)}">${escapeHtml(n)} <span style="opacity:.6;">${partnerCounts[n]}</span></button>`).join('');
+  partnerRow.querySelectorAll('.chip[data-partner]').forEach(chip=>{
+    chip.onclick = ()=>{
+      const n = chip.dataset.partner;
+      if(activePartners.has(n)){ activePartners.delete(n); chip.classList.remove('active'); }
+      else { activePartners.add(n); chip.classList.add('active'); }
+      renderGantt();
+    };
+  });
+}
+
+// ================= SORTING =================
+const STATUS_ORDER = {'Active':0,'On Hold':1,'Completed':2,'Lost':3};
+function sortValue(p, field){
+  if(field==='name') return (p.name||'').toLowerCase();
+  if(field==='status') return STATUS_ORDER.hasOwnProperty(p.status) ? STATUS_ORDER[p.status] : 99;
+  if(field==='partner') return p.partner || null;
+  if(field==='next_phase_date') return parseLoose(p.next_phase_date);
+  if(field==='next_milestone_date') return parseLoose(p.next_milestone_date);
+  return null;
+}
+function sortProjects(list){
+  const dirMul = sortDir==='asc' ? 1 : -1;
+  return list.slice().sort((a,b)=>{
+    let va = sortValue(a, sortField), vb = sortValue(b, sortField);
+    const aNull = (va===null || va===undefined);
+    const bNull = (vb===null || vb===undefined);
+    if(aNull && bNull) return (a.name||'').localeCompare(b.name||'');
+    if(aNull) return 1;
+    if(bNull) return -1;
+    if(va instanceof Date) va = va.getTime();
+    if(vb instanceof Date) vb = vb.getTime();
+    if(va < vb) return -1*dirMul;
+    if(va > vb) return 1*dirMul;
+    return (a.name||'').localeCompare(b.name||'');
+  });
+}
+document.querySelectorAll('.sort-chip').forEach(chip=>{
+  chip.onclick = ()=>{
+    const f = chip.dataset.sort;
+    if(sortField===f){ sortDir = sortDir==='asc' ? 'desc' : 'asc'; }
+    else { sortField = f; sortDir = 'asc'; }
+    document.querySelectorAll('.sort-chip').forEach(c=>{
+      c.classList.remove('active');
+      const arrow = c.querySelector('.sort-arrow');
+      if(arrow) arrow.remove();
+    });
+    chip.classList.add('active');
+    chip.insertAdjacentHTML('beforeend', `<span class="sort-arrow">${sortDir==='asc'?'▲':'▼'}</span>`);
+    renderGantt();
+  };
+});
+
+// ================= PORTFOLIO GANTT =================
+const grid = document.getElementById('ganttGrid');
+grid.style.setProperty('--weekcount', WEEKS.length);
+grid.style.setProperty('--weekw', '24px');
+let headHtml = '';
+headHtml += `<div class="gantt-head">
+  <div class="col-sticky">Project</div>
+  <div class="col-sticky2">Status</div>
+  <div class="col-sticky3">Current phase → next</div>
+  <div class="col-sticky4">Next milestone</div>`;
+WEEKS.forEach((w,i)=>{
+  headHtml += `<div class="m ${i===TODAY_WEEK_IDX?'today-month':''} ${w.monthStart?'month-start':''}" title="${escapeAttr(w.monthLabel)} — week ${w.weekNum}">
+    <div class="wk-month">${w.monthStart?w.monthLabel:''}</div>
+    <div class="wk-num">${w.weekNum}</div>
+  </div>`;
+});
+headHtml += `</div>`;
+
+function statusBadgeHtml(p, idx){
+  if(isLive()){
+    return `<select class="badge-select ${statusClass(p.status)}" data-row-status="${idx}">
+      ${['Active','On Hold','Completed','Lost','Unknown'].map(s=>`<option value="${s}" ${s===(p.status||'Active')?'selected':''}>${s.toUpperCase()}</option>`).join('')}
+    </select>`;
+  }
+  return `<span class="badge ${statusClass(p.status)}">${statusLabel(p.status).toUpperCase()}</span>`;
+}
+function milestoneCellHtml(p, idx, attn){
+  const attnDot = attn?'<span class="attn-dot" style="display:inline-block;margin-right:5px;"></span>':'';
+  if(isLive()){
+    return `
+      <div class="inline-edit-row">${attnDot}<input type="text" class="inline-input mname-input" data-row-mname="${idx}" value="${escapeAttr(p.next_milestone||'')}" placeholder="Next milestone"></div>
+      <input type="date" class="inline-input mdate-input" data-row-mdate="${idx}" value="${escapeAttr(parseLoose(p.next_milestone_date)?p.next_milestone_date:'')}">`;
+  }
+  return `
+      <span class="mname">${attnDot}${escapeHtml(p.next_milestone||'—')}</span>
+      <span class="mdate">${fmtDate(p.next_milestone_date)}</span>`;
+}
+function projectRowHtml(p, idx){
+  const cs = commState(p);
+  const attn = hasNearAttention(p);
+  const isNda = cs.cls==='nda' || p.is_nda;
+  const msWeek = p.milestones.filter(m=>m._week!==null);
+  const prWeek = p.pr_actions.filter(r=>r._week!==null);
+  const bar = phaseBarRange(p);
+  const nextPhaseText = phaseText(p.next_phase);
+  let rowsHtml = `<div class="prow ${p.status==='On Hold'?'onhold':''}" data-pidx="${idx}">
+    <div class="cell name" data-toggle="${idx}"><span class="caret">▸</span><span class="pname">${escapeHtml(p.name)}</span>${isNda?'<span class="nda-flag">NDA</span>':''}<button class="info-btn" data-pidx="${idx}" title="Project details">i</button></div>
+    <div class="cell status">${statusBadgeHtml(p, idx)}</div>
+    <div class="cell phase">${phaseCellHtml(p)}</div>
+    <div class="cell milestone">${milestoneCellHtml(p, idx, attn)}</div>`;
+  WEEKS.forEach((w,i)=>{
+    let cellContent = '';
+    if(i>=bar.start && i<=bar.end){
+      const segClasses = ['phase-bar-seg'];
+      if(i===bar.start) segClasses.push('start');
+      if(i===bar.end) segClasses.push('end');
+      if(bar.isGate) segClasses.push('gate');
+      if(bar.source==='today' && i===bar.end) segClasses.push('open-end');
+      cellContent += `<div class="${segClasses.join(' ')}"></div>`;
+    }
+    if(i===bar.end && bar.source==='phase'){
+      cellContent += `<div class="phase-flag ${bar.isGate?'gate':''}" data-pidx="${idx}" title="Next phase: ${escapeAttr(nextPhaseText||'')} — ${fmtDate(p.next_phase_date)}"></div>`;
+    }
+    if(i===TODAY_WEEK_IDX) cellContent += `<div class="today-line"></div>`;
+    const milestoneHere = msWeek.find(x=>x._week===i);
+    if(milestoneHere){
+      cellContent += `<div class="gmarker" data-kind="milestone" data-pidx="${idx}" data-mid="${escapeAttr(milestoneHere.id)}" title="${escapeAttr(milestoneHere.label)} — ${fmtDate(milestoneHere.date)}"></div>`;
+    }
+    const prHere = prWeek.some(r=>r._week===i);
+    if(prHere){
+      cellContent += `<div class="gmarker pr" data-kind="pr" data-pidx="${idx}" title="PR action — week ${w.weekNum}"></div>`;
+    }
+    rowsHtml += `<div class="cell m ${w.monthStart?'month-start':''}">${cellContent}</div>`;
+  });
+  rowsHtml += `</div>`;
+
+  // sub rows (Level 2), only rendered if expanded
+  if(expanded.has(idx)){
+    msWeek.forEach(m=>{
+      rowsHtml += `<div class="subrow milestone-row">
+        <div class="cell name">◆ ${escapeHtml(m.label)}</div>
+        <div class="cell status"></div>
+        <div class="cell phase"></div>
+        <div class="cell milestone"><span class="mdate">${fmtDate(m.date)}</span></div>`;
+      WEEKS.forEach((w,i)=>{
+        rowsHtml += `<div class="cell m ${w.monthStart?'month-start':''}">${i===m._week?'<div class="gmarker" style="margin:auto;"></div>':''}</div>`;
+      });
+      rowsHtml += `</div>`;
+
+      prWeek.filter(r=> findParentMilestone(p,r)===m).forEach(r=>{
+        rowsHtml += `<div class="subrow pr-row" data-pidx="${idx}">
+          <div class="cell name">${escapeHtml(r.label)}</div>
+          <div class="cell status"></div>
+          <div class="cell phase">${escapeHtml(r.owner||p.partner||'')}</div>
+          <div class="cell milestone"></div>`;
+        WEEKS.forEach((w,i)=>{
+          rowsHtml += `<div class="cell m ${w.monthStart?'month-start':''}">${i===r._week?'<div class="gmarker pr" style="position:static;margin:auto;"></div>':''}</div>`;
+        });
+        rowsHtml += `</div>`;
+      });
+    });
+    // orphan PR actions (no milestone at all)
+    if(!msWeek.length){
+      prWeek.forEach(r=>{
+        rowsHtml += `<div class="subrow pr-row">
+          <div class="cell name">${escapeHtml(r.label)}</div>
+          <div class="cell status"></div><div class="cell phase">${escapeHtml(r.owner||p.partner||'')}</div><div class="cell milestone"></div>`;
+        WEEKS.forEach((w,i)=>{
+          rowsHtml += `<div class="cell m ${w.monthStart?'month-start':''}">${i===r._week?'<div class="gmarker pr" style="position:static;margin:auto;"></div>':''}</div>`;
+        });
+        rowsHtml += `</div>`;
+      });
+    }
+  }
+  return rowsHtml;
+}
+
+function renderGantt(){
+  let body = '';
+  const vis = sortProjects(visibleProjects());
+  document.getElementById('portfolioCount').textContent = vis.length + ' of ' + PROJECTS.length + ' projects shown · click a project to expand · click a marker for detail';
+  vis.forEach((p)=>{ body += projectRowHtml(p, p.__idx); });
+  grid.innerHTML = headHtml + body;
+  expanded.forEach(idx=>{
+    const el = document.querySelector(`.prow[data-pidx="${idx}"]`);
+    if(el) el.classList.add('expanded');
+  });
+  attachHandlers();
+}
+
+function attachHandlers(){
+  grid.querySelectorAll('[data-toggle]').forEach(el=>{
+    el.onclick = ()=>{
+      const idx = +el.getAttribute('data-toggle');
+      if(expanded.has(idx)) expanded.delete(idx); else expanded.add(idx);
+      renderGantt();
+    };
+  });
+  grid.querySelectorAll('.gmarker[data-kind="milestone"]').forEach(el=>{
+    el.onclick = (e)=>{
+      e.stopPropagation();
+      const idx = +el.getAttribute('data-pidx');
+      const mid = el.getAttribute('data-mid');
+      const p = PROJECTS[idx];
+      const m = p.milestones.find(x=>x.id===mid);
+      openMilestonePanel(p, m);
+    };
+  });
+  grid.querySelectorAll('.gmarker.pr').forEach(el=>{
+    el.onclick = (e)=>{ e.stopPropagation(); const idx = +el.getAttribute('data-pidx'); if(idx>=0) openProjectPanel(PROJECTS[idx]); };
+  });
+  grid.querySelectorAll('.info-btn').forEach(el=>{
+    el.onclick = (e)=>{ e.stopPropagation(); const idx = +el.getAttribute('data-pidx'); openProjectPanel(PROJECTS[idx]); };
+  });
+  grid.querySelectorAll('.phase-flag').forEach(el=>{
+    el.onclick = (e)=>{ e.stopPropagation(); const idx = +el.getAttribute('data-pidx'); openPhasePanel(PROJECTS[idx]); };
+  });
+  grid.querySelectorAll('select[data-row-status]').forEach(el=>{
+    el.onclick = (e)=> e.stopPropagation();
+    el.onchange = async (e)=>{
+      e.stopPropagation();
+      const idx = +el.getAttribute('data-row-status');
+      await mutate('upsertProject', {id: PROJECTS[idx].id, status: el.value});
+    };
+  });
+  grid.querySelectorAll('input[data-row-mname]').forEach(el=>{
+    el.onclick = (e)=> e.stopPropagation();
+    el.onchange = async (e)=>{
+      const idx = +el.getAttribute('data-row-mname');
+      await mutate('upsertProject', {id: PROJECTS[idx].id, next_milestone: el.value});
+    };
+  });
+  grid.querySelectorAll('input[data-row-mdate]').forEach(el=>{
+    el.onclick = (e)=> e.stopPropagation();
+    el.onchange = async (e)=>{
+      const idx = +el.getAttribute('data-row-mdate');
+      await mutate('upsertProject', {id: PROJECTS[idx].id, next_milestone_date: el.value});
+    };
+  });
+}
+
+// ================= DETAIL PANEL =================
+const overlay = document.getElementById('overlay');
+const panel = document.getElementById('panel');
+function closePanel(){ overlay.classList.remove('open'); }
+overlay.onclick = (e)=>{ if(e.target===overlay) closePanel(); };
+
+function field(k,v,raw){
+  if(!v) return '';
+  return `<div class="field"><div class="k">${k.toUpperCase()}</div><div class="v">${raw? v : escapeHtml(String(v))}</div></div>`;
+}
+
+function openProjectPanel(p){
+  const cs = commState(p);
+  const editable = isLive();
+  panel.innerHTML = `
+    <button class="close" onclick="closePanel()">✕</button>
+    <h3>${escapeHtml(p.name)}</h3>
+    <div class="tb-sub">${escapeHtml(p.location||'')}</div>
+    <span class="commstate" style="${commColor(cs.cls)}">${cs.label}</span>
+    ${editable ? projectEditFormHtml(p) : projectReadOnlyHtml(p)}
+    <div class="section-title">Milestones</div>
+    ${milestonesListHtml(p, editable)}
+    ${editable ? milestoneAddRowHtml(p) : ''}
+    <div class="section-title">PR actions</div>
+    ${prActionsListHtml(p, editable)}
+    ${editable ? prActionAddRowHtml(p) : ''}
+    ${!editable ? `<div class="readonly-note">This is a read-only snapshot. <button class="chip" onclick="openConfigPanel()" style="cursor:pointer;">Connect a data source</button> to edit dates, status, phase and add PR actions.</div>` : ''}
+  `;
+  overlay.classList.add('open');
+  if(editable) wireProjectPanel(p);
+}
+
+function projectReadOnlyHtml(p){
+  return `
+    ${field('Status', p.status)}
+    ${field('Phase', p.phase)}
+    ${p.next_phase? field('Next phase', phaseText(p.next_phase) + (p.next_phase_date? ' · '+fmtDate(p.next_phase_date):'')) : ''}
+    ${field('Next milestone', (p.next_milestone||'—') + ' · ' + fmtDate(p.next_milestone_date))}
+    ${field('Partner / owner', p.partner)}
+    ${field('Project architect', p.project_architect)}
+    ${field('Typology / programme', [p.typology,p.programma].filter(Boolean).join(' — '))}
+    ${field('Client', p.client)}
+    ${field('Developer', p.developer)}
+    ${field('Collaboration', p.collaboration)}
+    ${field('PR / action note', p.action)}
+    ${field('Info', p.info)}
+    ${field('Last media post', p.last_media_post)}
+    ${p.link_web? field('Website', `<a href="${escapeAttr(p.link_web)}" target="_blank" style="color:var(--teal)">${escapeHtml(p.link_web)}</a>`, true):''}
+    ${p.link_folder? field('Server path', p.link_folder):''}
+  `;
+}
+
+function sel(id,label,value,options,field){
+  return `<div class="form-field"><label>${label}</label><select id="${id}" ${field?`data-autosave="${field}"`:''}>
+    ${options.map(o=>`<option value="${escapeAttr(o)}" ${o===value?'selected':''}>${escapeHtml(o)}</option>`).join('')}
+  </select></div>`;
+}
+function txt(id,label,value,field){
+  return `<div class="form-field"><label>${label}</label><input type="text" id="${id}" value="${escapeAttr(value||'')}" ${field?`data-autosave="${field}"`:''}></div>`;
+}
+function dateInput(id,label,value,field){
+  const v = parseLoose(value);
+  const iso = v ? value : '';
+  return `<div class="form-field"><label>${label}</label><input type="date" id="${id}" value="${escapeAttr(iso)}" ${field?`data-autosave="${field}"`:''}></div>`;
+}
+function area(id,label,value,field){
+  return `<div class="form-field"><label>${label}</label><textarea id="${id}" ${field?`data-autosave="${field}"`:''}>${escapeHtml(value||'')}</textarea></div>`;
+}
+
+function projectEditFormHtml(p){
+  return `
+    <div class="edit-grid">
+      ${sel('f_status','Status',p.status||'Active',['Active','On Hold','Completed','Lost','Unknown'],'status')}
+      ${txt('f_partner','Partner / owner',p.partner,'partner')}
+      ${txt('f_phase','Current phase',p.phase,'phase')}
+      ${txt('f_next_phase','Next phase',p.next_phase,'next_phase')}
+      ${dateInput('f_next_phase_date','Next phase starts',p.next_phase_date,'next_phase_date')}
+      ${txt('f_next_milestone','Next milestone',p.next_milestone,'next_milestone')}
+      ${dateInput('f_next_milestone_date','Next milestone date',p.next_milestone_date,'next_milestone_date')}
+      ${sel('f_comm_status','Communication status',p.comm_status||commState(p).label,COMM_OPTIONS,'comm_status')}
+    </div>
+    <div class="checkbox-field"><input type="checkbox" id="f_is_nda" data-autosave-checkbox="is_nda" ${p.is_nda?'checked':''}><label for="f_is_nda" style="margin:0;">NDA / confidential project</label></div>
+    <div class="edit-grid full">
+      ${area('f_action','PR / action note',p.action,'action')}
+    </div>
+    <div class="readonly-note" id="autosaveHint">Changes save automatically as you edit.</div>
+  `;
+}
+function wireProjectPanel(p){
+  panel.querySelectorAll('[data-autosave]').forEach(el=>{
+    el.onchange = async ()=>{
+      const res = await mutate('upsertProject', {id: p.id, [el.dataset.autosave]: el.value});
+      if(res) refreshPanelBadge(p.id);
+    };
+  });
+  panel.querySelectorAll('[data-autosave-checkbox]').forEach(el=>{
+    el.onchange = async ()=>{
+      const res = await mutate('upsertProject', {id: p.id, [el.dataset.autosaveCheckbox]: el.checked?'TRUE':'FALSE'});
+      if(res) refreshPanelBadge(p.id);
+    };
+  });
+}
+function refreshPanelBadge(pid){
+  const np = PROJECTS.find(x=>x.id===pid);
+  if(!np) return;
+  const cs = commState(np);
+  const badge = panel.querySelector('.commstate');
+  if(badge){ badge.textContent = cs.label; badge.setAttribute('style', commColor(cs.cls)); }
+}
+
+function milestonesListHtml(p, editable){
+  if(!p.milestones.length) return `<div class="readonly-note">No milestones recorded yet.</div>`;
+  return `<div class="mini-list">${p.milestones.map(m=>`
+    <div class="mini-item">
+      <span class="mi-label">${escapeHtml(m.label)}</span>
+      <span class="mi-date">${fmtDate(m.date)}</span>
+      ${editable? `<button class="mini-del" data-del-milestone="${escapeAttr(m.id)}" title="Delete">✕</button>` : ''}
+    </div>`).join('')}</div>`;
+}
+function milestoneAddRowHtml(p){
+  return `<div class="mini-add-row">
+    <input type="text" id="new_m_label" placeholder="Milestone name">
+    <input type="date" id="new_m_date">
+    <button class="mini-add-btn" id="addMilestoneBtn">+ Add milestone</button>
+  </div>`;
+}
+function prActionsListHtml(p, editable){
+  if(!p.pr_actions.length) return `<div class="readonly-note">No PR actions recorded yet.</div>`;
+  return `<div class="mini-list">${p.pr_actions.map(r=>`
+    <div class="mini-item">
+      <span class="mi-label">${escapeHtml(r.label)}${r.owner? ' · '+escapeHtml(r.owner):''}</span>
+      <span class="mi-date">${fmtDate(r.date)}</span>
+      ${editable? `<select class="mi-status-select" data-pr-status="${escapeAttr(r.id)}">
+        ${['Planned','In progress','Done'].map(s=>`<option value="${s}" ${ (r.status||'Planned')===s ? 'selected':''}>${s}</option>`).join('')}
+      </select>` : (r.status?`<span class="mi-date">${escapeHtml(r.status)}</span>`:'')}
+      ${editable? `<button class="mini-del" data-del-pr="${escapeAttr(r.id)}" title="Delete">✕</button>` : ''}
+    </div>`).join('')}</div>`;
+}
+function prActionAddRowHtml(p){
+  return `<div class="mini-add-row">
+    <input type="text" id="new_pr_label" placeholder="PR action (e.g. Photography)">
+    <input type="date" id="new_pr_date">
+    <input type="text" id="new_pr_owner" placeholder="Owner" style="max-width:90px;" value="${escapeAttr(p.partner||'')}">
+    <button class="mini-add-btn" id="addPrBtn">+ Add PR action</button>
+  </div>`;
+}
+
+document.addEventListener('click', async (e)=>{
+  const delM = e.target.closest('[data-del-milestone]');
+  if(delM){
+    const pid = panel.dataset.pid;
+    if(confirm('Delete this milestone?')){
+      const res = await mutate('deleteMilestone', {id: delM.getAttribute('data-del-milestone')});
+      if(res){ const p = PROJECTS.find(x=>x.id===pid || x.name===pid); if(p) openProjectPanel(p); }
+    }
+  }
+  const delPr = e.target.closest('[data-del-pr]');
+  if(delPr){
+    const pid = panel.dataset.pid;
+    if(confirm('Delete this PR action?')){
+      const res = await mutate('deletePRAction', {id: delPr.getAttribute('data-del-pr')});
+      if(res){ const p = PROJECTS.find(x=>x.id===pid || x.name===pid); if(p) openProjectPanel(p); }
+    }
+  }
+  if(e.target.id==='addMilestoneBtn'){
+    const label = document.getElementById('new_m_label').value.trim();
+    const date = document.getElementById('new_m_date').value;
+    if(!label){ showToast('Milestone needs a name', true); return; }
+    const pid = panel.dataset.pid;
+    const res = await mutate('upsertMilestone', {project_id: pid, label, date, date_precision: date?'Exact':'Unknown', notes:''});
+    if(res){ const p = PROJECTS.find(x=>x.id===pid); if(p) openProjectPanel(p); }
+  }
+  if(e.target.id==='addPrBtn'){
+    const label = document.getElementById('new_pr_label').value.trim();
+    const date = document.getElementById('new_pr_date').value;
+    const owner = document.getElementById('new_pr_owner').value.trim();
+    if(!label){ showToast('PR action needs a name', true); return; }
+    const pid = panel.dataset.pid;
+    const res = await mutate('upsertPRAction', {project_id: pid, label, date, owner, status:'Planned', notes:'', milestone_id:''});
+    if(res){ const p = PROJECTS.find(x=>x.id===pid); if(p) openProjectPanel(p); }
+  }
+});
+document.addEventListener('change', async (e)=>{
+  const prStatus = e.target.closest('[data-pr-status]');
+  if(prStatus){
+    await mutate('upsertPRAction', {id: prStatus.getAttribute('data-pr-status'), status: prStatus.value});
+  }
+});
+
+function openPhasePanel(p){
+  panel.innerHTML = `
+    <button class="close" onclick="closePanel()">✕</button>
+    <h3>▲ Phase change</h3>
+    <div class="tb-sub">${escapeHtml(p.name)}</div>
+    ${field('Current phase', phaseText(p.phase))}
+    ${field('Next phase', phaseText(p.next_phase))}
+    ${field('Next phase starts', fmtDate(p.next_phase_date))}
+    ${field('Partner / owner', p.partner)}
+    <div class="field"><div class="k">NOTE</div><div class="v" style="color:var(--ink-faint); font-size:12.5px;">Bar assumes the current phase began 1 Aug 2026; the actual start date isn't recorded in the source sheet.</div></div>
+    <div style="margin-top:18px;"><button class="chip active" onclick="openProjectPanel(PROJECTS[${p.__idx}])" style="cursor:pointer;">View full project →</button></div>
+  `;
+  overlay.classList.add('open');
+}
+function openMilestonePanel(p, m){
+  const related = p.pr_actions.filter(r=> findParentMilestone(p,r)===m);
+  panel.innerHTML = `
+    <button class="close" onclick="closePanel()">✕</button>
+    <h3>◆ ${escapeHtml(m.label)}</h3>
+    <div class="tb-sub">${escapeHtml(p.name)} — ${fmtDate(m.date)}</div>
+    ${field('Project status', p.status)}
+    ${field('Current phase', p.phase)}
+    ${field('Partner / owner', p.partner)}
+    <div class="field"><div class="k">RELATED PR ACTIONS</div>
+      <div class="v">${related.length? related.map(r=>`• ${escapeHtml(r.label)} (${fmtDate(r.date)})`).join('<br/>') : 'None recorded yet'}</div>
+    </div>
+    <div style="margin-top:18px;"><button class="chip active" onclick="openProjectPanel(PROJECTS[${p.__idx}])" style="cursor:pointer;">View full project →</button></div>
+  `;
+  overlay.classList.add('open');
+}
+
+// track which project the panel currently refers to, for the delegated add/delete handlers above
+const _origOpenProjectPanel = openProjectPanel;
+openProjectPanel = function(p){ panel.dataset.pid = p.id || p.name; _origOpenProjectPanel(p); };
+
+// ================= ADD PROJECT =================
+document.getElementById('addProjectBtn').onclick = ()=>{
+  if(!isLive()){ showToast('Connect a data source first', true); openConfigPanel(); return; }
+  panel.innerHTML = `
+    <button class="close" onclick="closePanel()">✕</button>
+    <h3>New project</h3>
+    <div class="edit-grid">
+      ${txt('np_name','Project name','')}
+      ${txt('np_location','Location','')}
+      ${sel('np_status','Status','Active',['Active','On Hold','Completed','Lost','Unknown'])}
+      ${txt('np_phase','Current phase','')}
+      ${txt('np_partner','Partner / owner','')}
+    </div>
+    <button class="save-btn" id="createProjectBtn">Create project</button>
+  `;
+  overlay.classList.add('open');
+  document.getElementById('createProjectBtn').onclick = async ()=>{
+    const name = document.getElementById('np_name').value.trim();
+    if(!name){ showToast('Project needs a name', true); return; }
+    const btn = document.getElementById('createProjectBtn');
+    btn.disabled = true; btn.textContent = 'Creating…';
+    const res = await mutate('upsertProject', {
+      name, location: document.getElementById('np_location').value,
+      status: document.getElementById('np_status').value,
+      phase: document.getElementById('np_phase').value,
+      partner: document.getElementById('np_partner').value,
+      comm_status: 'Confirm before publishing', is_nda: 'FALSE',
+    });
+    btn.disabled = false; btn.textContent = 'Create project';
+    if(res){ closePanel(); const np = PROJECTS.find(x=>x.name===name); if(np) openProjectPanel(np); }
+  };
+};
+
+// ================= QUICK ADD PR TASK (floating button) =================
+document.getElementById('quickAddBtn').onclick = ()=>{
+  if(!isLive()){ showToast('Connect a data source first', true); openConfigPanel(); return; }
+  panel.innerHTML = `
+    <button class="close" onclick="closePanel()">✕</button>
+    <h3>Quick add PR task</h3>
+    <div class="tb-sub">Attach a PR action to any project without leaving this screen.</div>
+    <div class="quick-form">
+      <div class="form-field"><label>Project</label>
+        <input type="text" id="q_project" list="projectNameList" placeholder="Start typing a project name…">
+      </div>
+      ${txt('q_label','What needs doing','')}
+      ${dateInput('q_date','Date','')}
+      ${txt('q_owner','Owner','')}
+    </div>
+    <button class="save-btn" id="quickAddSubmit">Add PR task</button>
+  `;
+  overlay.classList.add('open');
+  document.getElementById('q_project').focus();
+  document.getElementById('quickAddSubmit').onclick = async ()=>{
+    const projName = document.getElementById('q_project').value.trim();
+    const label = document.getElementById('q_label').value.trim();
+    const date = document.getElementById('q_date').value;
+    const owner = document.getElementById('q_owner').value.trim();
+    const proj = PROJECTS.find(p=>p.name.toLowerCase()===projName.toLowerCase());
+    if(!proj){ showToast('No project matches "'+projName+'" — check the spelling', true); return; }
+    if(!label){ showToast('PR task needs a description', true); return; }
+    const btn = document.getElementById('quickAddSubmit');
+    btn.disabled = true; btn.textContent = 'Adding…';
+    const res = await mutate('upsertPRAction', {project_id: proj.id, label, date, owner: owner||proj.partner||'', status:'Planned', notes:'', milestone_id:''});
+    btn.disabled = false; btn.textContent = 'Add PR task';
+    if(res){ showToast('Added to '+proj.name); closePanel(); }
+  };
+};
+
+// ================= DATA SOURCE CONFIG =================
+function openConfigPanel(){
+  panel.innerHTML = `
+    <button class="close" onclick="closePanel()">✕</button>
+    <h3>Connect data source</h3>
+    <div class="tb-sub">Point this dashboard at your Google Sheet backend. See SETUP_GUIDE.md for how to create one.</div>
+    <div class="edit-grid full">
+      ${txt('cfg_url','Web app URL', API_URL)}
+      ${txt('cfg_key','Secret key', API_KEY)}
+    </div>
+    <button class="save-btn" id="saveConfigBtn">Connect</button>
+    ${API_URL ? `<button class="save-btn" id="disconnectBtn" style="background:var(--slate); margin-left:8px;">Disconnect</button>` : ''}
+  `;
+  overlay.classList.add('open');
+  document.getElementById('saveConfigBtn').onclick = async ()=>{
+    API_URL = document.getElementById('cfg_url').value.trim();
+    API_KEY = document.getElementById('cfg_key').value.trim();
+    localStorage.setItem('oz_api_url', API_URL);
+    localStorage.setItem('oz_api_key', API_KEY);
+    closePanel();
+    await boot();
+  };
+  const dc = document.getElementById('disconnectBtn');
+  if(dc) dc.onclick = async ()=>{
+    API_URL = ''; API_KEY = '';
+    localStorage.removeItem('oz_api_url'); localStorage.removeItem('oz_api_key');
+    closePanel();
+    await boot();
+  };
+}
+document.getElementById('dataSourceBtn').onclick = openConfigPanel;
+
+// ================= THIS WEEK / OUTLOOK =================
+function collectActions(maxDays){
+  const items = [];
+  PROJECTS.forEach(p=>{
+    const mDays = daysUntil(p.next_milestone_date);
+    if(p.next_milestone && mDays!==null && mDays>=-1 && mDays<=maxDays){
+      items.push({when:mDays, date:p.next_milestone_date, what:p.next_milestone, proj:p.name, owner:p.partner, kind:'milestone'});
+    }
+    p.pr_actions.forEach(r=>{
+      const d = daysUntil(r.date);
+      if(d!==null && d>=-1 && d<=maxDays){
+        items.push({when:d, date:r.date, what:r.label, proj:p.name, owner:r.owner||p.partner, kind:'pr'});
+      }
+    });
+  });
+  items.sort((a,b)=>a.when-b.when);
+  return items;
+}
+function renderActionList(container, items){
+  if(!items.length){ container.innerHTML = `<div class="empty-note">Nothing scheduled in this window — check a wider range or confirm dates in Project Information.</div>`; return; }
+  container.innerHTML = items.map(it=>`
+    <div class="action-card">
+      <div class="when">${it.approx? '~'+it.date : fmtDate(it.date)}</div>
+      <div class="what"><b>${escapeHtml(it.what)}</b></div>
+      <div class="proj">${escapeHtml(it.proj)}</div>
+      <div class="owner">${escapeHtml(it.owner||'—')}</div>
+      <div class="kindtag ${it.kind}">${it.kind==='milestone'?'MILESTONE':'PR ACTION'}</div>
+    </div>
+  `).join('');
+}
+function refreshWeek(days){ currentWeekDays = days; renderActionList(document.getElementById('weekList'), collectActions(days)); }
+document.querySelectorAll('#view-week .chip').forEach(c=>{
+  c.onclick=()=>{ document.querySelectorAll('#view-week .chip').forEach(x=>x.classList.remove('active')); c.classList.add('active'); refreshWeek(+c.dataset.days); };
+});
+function refreshOutlook(months){ currentOutlookMonths = months; renderActionList(document.getElementById('outlookList'), collectActions(months*30.44)); }
+document.querySelectorAll('#view-outlook .chip').forEach(c=>{
+  c.onclick=()=>{ document.querySelectorAll('#view-outlook .chip').forEach(x=>x.classList.remove('active')); c.classList.add('active'); refreshOutlook(+c.dataset.months); };
+});
+
+// ================= PROJECT INFO =================
+function renderInfo(filter){
+  currentInfoFilter = filter||'';
+  const f = currentInfoFilter.toLowerCase();
+  const list = PROJECTS.filter(p=>{
+    if(!f) return true;
+    return [p.name,p.client,p.developer,p.project_architect,p.partner,p.typology,p.location].filter(Boolean).join(' ').toLowerCase().includes(f);
+  });
+  document.getElementById('infoGrid').innerHTML = list.map(p=>{
+    const cs = commState(p);
+    return `<div class="info-card ${p.is_nda||cs.cls==='nda'?'nda':''}" data-pidx="${p.__idx}" style="cursor:pointer;">
+      <h4>${escapeHtml(p.name)} ${p.is_nda?'<span class="nda-flag">NDA</span>':''}</h4>
+      <div class="meta-line"><span>Location:</span> ${escapeHtml(p.location||'—')}</div>
+      <div class="meta-line"><span>Status:</span> ${escapeHtml(statusLabel(p.status))} · <span>Phase:</span> ${escapeHtml((p.phase||'—').toString().replace(/^\d+\.\s*/,''))}</div>
+      <div class="meta-line"><span>Architect:</span> ${escapeHtml(p.project_architect||'—')} · <span>Partner:</span> ${escapeHtml(p.partner||'—')}</div>
+      <div class="meta-line"><span>Client:</span> ${escapeHtml(p.client||'—')}</div>
+      <div class="meta-line"><span>Typology:</span> ${escapeHtml(p.typology||p.programma||'—')}</div>
+      <div class="meta-line" style="margin-top:6px;"><span class="commstate" style="${commColor(cs.cls)}">${cs.label}</span></div>
+    </div>`;
+  }).join('') || `<div class="empty-note">No projects match "${escapeHtml(currentInfoFilter)}".</div>`;
+  document.getElementById('infoGrid').querySelectorAll('[data-pidx]').forEach(el=>{
+    el.onclick = ()=> openProjectPanel(PROJECTS[+el.getAttribute('data-pidx')]);
+  });
+  document.getElementById('infoCount').textContent = list.length + ' of ' + PROJECTS.length + ' projects on file';
+}
+document.getElementById('infoSearch').oninput = (e)=> renderInfo(e.target.value);
+
+// ================= TABS =================
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('view-'+t.dataset.view).classList.add('active');
+  };
+});
+
+// ================= BOOT =================
+boot();
+</script>
+</body>
+</html>
